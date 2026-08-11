@@ -14,44 +14,38 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from django.conf import settings
 from config.views import HealthCheckAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
     path(
-        'api/v1/health/', 
+        'api/v1/health/',
         HealthCheckAPIView.as_view(),
         name='health',
     ),
-
     path(
-        'api/v1/schema/', 
-        SpectacularAPIView.as_view(), 
+        'api/v1/schema/',
+        SpectacularAPIView.as_view(),
         name='schema',
     ),
-
     path(
-        'api/v1/docs/', 
-        SpectacularSwaggerView.as_view(), 
+        'api/v1/docs/',
+        SpectacularSwaggerView.as_view(),
         name='swagger-ui',
     ),
-
     path(
-        'api/v1/redoc/', 
-        SpectacularRedocView.as_view(), 
+        'api/v1/redoc/',
+        SpectacularRedocView.as_view(),
         name='redoc',
     ),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

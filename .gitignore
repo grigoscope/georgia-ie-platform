@@ -55,11 +55,10 @@ coverage.xml
 *.pot
 
 # Django stuff:
+.ruff_cache/
 
 
 
-
-*/migrations/*
 .log
 db.sqlite3
 

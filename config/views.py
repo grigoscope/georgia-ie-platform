@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 
 
 class HealthCheckAPIView(APIView):
-    '''Проверка работоспособности БД'''
+    """Проверка работоспособности БД"""
+
     def get(self, request):
         try:
             with connection.cursor() as cursor:
