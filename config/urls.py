@@ -19,9 +19,11 @@ from django.contrib import admin
 from django.urls import path
 
 from config import settings
+from config.views import HealthCheckAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/health/', HealthCheckAPIView.as_view())
 ]
 
 if settings.DEBUG:
