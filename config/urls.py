@@ -17,13 +17,37 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from config import settings
+from django.conf import settings
 from config.views import HealthCheckAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/health/', HealthCheckAPIView.as_view())
+
+    path(
+        'api/v1/health/', 
+        HealthCheckAPIView.as_view(),
+        name='health',
+    ),
+
+    path(
+        'api/v1/schema/', 
+        SpectacularAPIView.as_view(), 
+        name='schema',
+    ),
+
+    path(
+        'api/v1/docs/', 
+        SpectacularSwaggerView.as_view(), 
+        name='swagger-ui',
+    ),
+
+    path(
+        'api/v1/redoc/', 
+        SpectacularRedocView.as_view(), 
+        name='redoc',
+    ),
 ]
 
 if settings.DEBUG:

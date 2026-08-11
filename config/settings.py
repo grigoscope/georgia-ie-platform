@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
+from drf_spectacular.settings import SPECTACULAR_DEFAULTS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -133,4 +135,15 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS =  {
+    'TITLE': 'Georgia IE Platform API',
+    'DESCRIPTION': 'Документация для API платформы Georgia IE',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
