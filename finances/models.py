@@ -143,19 +143,92 @@ class FinancialAccount(models.Model):
             models.UniqueConstraint(
                 fields=['user'],
                 condition=Q(is_default=True),
-                name='unique_default_financial_account_per_user'
+                name='unique_default_financial_account_per_user',
             )
         ]
 
-        indexes = [
-            models.Index(
-                fields=['user', 'is_active']
-            )
-        ]
+        indexes = [models.Index(fields=['user', 'is_active'])]
 
     def __str__(self):
         return f'{self.name} ({self.user.email})'
 
 
 class Counterparty(models.Model):
-    ''''''
+    """Модель контрагента пользователя."""
+
+    COUNTERPARTY_TYPES = [
+        ('individual', 'Физическое лицо'),
+        ('entrepreneur', 'Индивидуальный предприниматель'),
+        ('company', 'Компания'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='counterparties',
+    )
+
+    name = models.CharField(
+        verbose_name='Название или имя',
+        max_length=255,
+    )
+
+    type = models.CharField(
+        verbose_name='Тип контрагента',
+        choices=COUNTERPARTY_TYPES,
+        max_length=20,
+    )
+
+    country = models.CharField(
+        verbose_name='Страна',
+        max_length=100,
+        blank=True,
+    )
+
+    tax_id = models.CharField(
+        verbose_name='Налоговый номер',
+        max_length=50,
+        blank=True,
+    )
+
+    address = models.CharField(
+        verbose_name='Адрес',
+        max_length=255,
+        blank=True,
+    )
+
+    email = models.EmailField(
+        verbose_name='Email',
+        blank=True,
+    )
+
+    phone = models.CharField(
+        verbose_name='Телефон',
+        max_length=30,
+        blank=True,
+    )
+
+    comment = models.TextField(
+        verbose_name='Комментарий',
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        verbose_name='Дата создания',
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        verbose_name='Дата изменения',
+        auto_now=True,
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=['user', 'name'],
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.name} ({self.get_type_display()})'
