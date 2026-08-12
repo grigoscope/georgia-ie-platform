@@ -2,7 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    '''Менеджер пользователей с авторизацией по email.'''
+    """Менеджер пользователей с авторизацией по email."""
 
     use_in_migrations = True
 
