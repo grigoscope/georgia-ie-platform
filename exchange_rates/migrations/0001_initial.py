@@ -5,21 +5,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name='Currency',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('code', models.CharField(max_length=10, unique=True, verbose_name='Код валюты')),
                 ('name', models.CharField(max_length=50, verbose_name='Название валюты')),
-                ('kind', models.CharField(choices=[('fiat', 'Фиатная'), ('crypto', 'Крипто')], default='fiat', max_length=10, verbose_name='Тип валюты')),
-                ('decimal_places', models.PositiveSmallIntegerField(default=2, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(10)], verbose_name='Количество знаков после запятой')),
+                (
+                    'kind',
+                    models.CharField(
+                        choices=[('fiat', 'Фиатная'), ('crypto', 'Крипто')],
+                        default='fiat',
+                        max_length=10,
+                        verbose_name='Тип валюты',
+                    ),
+                ),
+                (
+                    'decimal_places',
+                    models.PositiveSmallIntegerField(
+                        default=2,
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(10),
+                        ],
+                        verbose_name='Количество знаков после запятой',
+                    ),
+                ),
                 ('is_active', models.BooleanField(default=True, verbose_name='Активная валюта')),
             ],
         ),
