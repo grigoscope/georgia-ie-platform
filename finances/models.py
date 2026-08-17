@@ -10,6 +10,7 @@ class FinancialAccount(models.Model):
         ('bank_account', 'Банковский счёт'),
         ('bank_card', 'Банковская карта'),
         ('cash', 'Наличные'),
+        ('cash_register', 'Кассовый аппарат'),
         ('physical_pos', 'Физический POS-терминал'),
         ('payment_system', 'Платёжная система'),
         ('crypto_wallet', 'Криптокошелёк'),
