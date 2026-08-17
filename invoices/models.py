@@ -262,8 +262,8 @@ class InvoiceItem(models.Model):
     )
 
     unit = models.CharField(
-        verbose_name='Единица измерения', 
-        max_length=50, 
+        verbose_name='Единица измерения',
+        max_length=50,
         default='service',
     )
 
