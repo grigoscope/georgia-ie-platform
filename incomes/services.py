@@ -7,6 +7,8 @@ from exchange_rates.services import GELConversionService
 from incomes.models import IncomeEntry
 from taxes.services import TaxPeriodCalculationService
 
+from audit.services import AuditService
+
 
 class IncomeCategoryService:
     """Определение рекомендуемой графы декларации."""
@@ -38,6 +40,7 @@ class IncomeService:
     def __init__(self):
         self.conversion_service = GELConversionService()
         self.tax_service = TaxPeriodCalculationService()
+        self.audit_service = AuditService()
 
     @transaction.atomic
     def create_income(
@@ -64,6 +67,10 @@ class IncomeService:
         manual_source='manual',
         ready_amount_gel=None,
         tax_period_deadline=None,
+        actor=None,
+        request_id='',
+        ip_address=None,
+        user_agent='',
     ):
         self._validate_owners(
             user=user,
@@ -118,6 +125,31 @@ class IncomeService:
             year=received_at.year,
             month=received_at.month,
             deadline=tax_period_deadline,
+        )
+
+        self.audit_service.log(
+            user=user,
+            actor=actor or user,
+            action='create',
+            obj=income,
+            new_values={
+                'received_at': income.received_at,
+                'description': income.description,
+                'counterparty': income.counterparty,
+                'financial_account': income.financial_account,
+                'original_amount': income.original_amount,
+                'original_currency': income.original_currency,
+                'exchange_rate_value': income.exchange_rate_value,
+                'exchange_rate_unit': income.exchange_rate_unit,
+                'exchange_rate_source': income.exchange_rate_source,
+                'amount_gel': income.amount_gel,
+                'declaration_category': income.declaration_category,
+                'vat_amount': income.vat_amount,
+                'invoice': income.invoice,
+            },
+            request_id=request_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
         )
 
         return income
