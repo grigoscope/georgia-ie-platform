@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -20,36 +19,64 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='incomeentry',
             name='invoice',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='income_entries', to='invoices.invoice', verbose_name='Инвойс'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name='income_entries',
+                to='invoices.invoice',
+                verbose_name='Инвойс',
+            ),
         ),
         migrations.AddField(
             model_name='incomeentry',
             name='original_currency',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='income_entries', to='exchange_rates.currency', verbose_name='Исходная валюта'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='income_entries',
+                to='exchange_rates.currency',
+                verbose_name='Исходная валюта',
+            ),
         ),
         migrations.AddField(
             model_name='incomeentry',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='income_entries', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='income_entries',
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddIndex(
             model_name='incomeentry',
-            index=models.Index(fields=['user', 'received_at'], name='incomes_inc_user_id_9666c0_idx'),
+            index=models.Index(
+                fields=['user', 'received_at'], name='incomes_inc_user_id_9666c0_idx'
+            ),
         ),
         migrations.AddIndex(
             model_name='incomeentry',
-            index=models.Index(fields=['user', 'declaration_category'], name='incomes_inc_user_id_cc9874_idx'),
+            index=models.Index(
+                fields=['user', 'declaration_category'], name='incomes_inc_user_id_cc9874_idx'
+            ),
         ),
         migrations.AddConstraint(
             model_name='incomeentry',
-            constraint=models.CheckConstraint(condition=models.Q(('original_amount__gt', 0)), name='income_original_amount_positive'),
+            constraint=models.CheckConstraint(
+                condition=models.Q(('original_amount__gt', 0)),
+                name='income_original_amount_positive',
+            ),
         ),
         migrations.AddConstraint(
             model_name='incomeentry',
-            constraint=models.CheckConstraint(condition=models.Q(('exchange_rate_value__gt', 0)), name='income_exchange_rate_positive'),
+            constraint=models.CheckConstraint(
+                condition=models.Q(('exchange_rate_value__gt', 0)),
+                name='income_exchange_rate_positive',
+            ),
         ),
         migrations.AddConstraint(
             model_name='incomeentry',
-            constraint=models.CheckConstraint(condition=models.Q(('amount_gel__gt', 0)), name='income_amount_gel_positive'),
+            constraint=models.CheckConstraint(
+                condition=models.Q(('amount_gel__gt', 0)), name='income_amount_gel_positive'
+            ),
         ),
     ]

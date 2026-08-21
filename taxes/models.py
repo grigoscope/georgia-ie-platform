@@ -64,7 +64,7 @@ class TaxPeriod(models.Model):
     )
 
     field_17 = models.DecimalField(
-        verbose_name='Сумма дохода за предыдущий месяц',
+        verbose_name='Общая сумма дохода за месяц',
         max_digits=18,
         decimal_places=2,
         default=Decimal('0.00'),
