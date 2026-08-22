@@ -154,3 +154,11 @@ SPECTACULAR_SETTINGS = {
 }
 
 AUTH_USER_MODEL = 'accounts.User'
+
+INVOICE_PDF_FONT_PATH = (
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+)
+
+INVOICE_PDF_FONT_BOLD_PATH = (
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+)

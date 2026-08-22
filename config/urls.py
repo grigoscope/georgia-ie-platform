@@ -60,6 +60,10 @@ urlpatterns = [
         'api/reports/',
         include('incomes.report_urls'),
     ),
+    path(
+        'api/',
+        include('invoices.urls'),
+    ),
 ]
 
 if settings.DEBUG:
