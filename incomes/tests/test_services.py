@@ -17,7 +17,6 @@ from incomes.services import (
 )
 from taxes.models import TaxPeriod
 
-
 User = get_user_model()
 
 
@@ -70,9 +69,7 @@ class IncomeServiceTests(TestCase):
         self.service = IncomeService()
 
     def test_category_suggestion_for_bank_account(self):
-        category = IncomeCategoryService.suggest(
-            self.account
-        )
+        category = IncomeCategoryService.suggest(self.account)
 
         self.assertEqual(
             category,
@@ -207,9 +204,7 @@ class IncomeServiceTests(TestCase):
         )
 
         self.assertEqual(
-            audit.new_values[
-                'declaration_category'
-            ],
+            audit.new_values['declaration_category'],
             'cashless_20',
         )
 
@@ -299,9 +294,6 @@ class IncomeServiceTests(TestCase):
                 original_currency=self.usd,
                 declaration_category='cashless_20',
                 manual_rate_value=Decimal('2.70'),
-
-                # tax_period_deadline специально
-                # не передаём
             )
 
         self.assertEqual(
