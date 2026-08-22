@@ -315,3 +315,299 @@ class IncomeServiceTests(TestCase):
             ExchangeRate.objects.count(),
             0,
         )
+
+    def test_update_income_category_recalculates_tax_period(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Консультация',
+            financial_account=self.account,
+            original_amount=Decimal('100'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        period = TaxPeriod.objects.get(
+            user=self.user,
+            year=2026,
+            month=8,
+        )
+
+        self.assertEqual(
+            period.field_20,
+            Decimal('270.00'),
+        )
+        self.assertEqual(
+            period.field_21,
+            Decimal('0.00'),
+        )
+
+        self.service.update_income(
+            income=income,
+            declaration_category='other_21',
+        )
+
+        period.refresh_from_db()
+        income.refresh_from_db()
+
+        self.assertEqual(
+            income.declaration_category,
+            'other_21',
+        )
+
+        self.assertEqual(
+            period.field_20,
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            period.field_21,
+            Decimal('270.00'),
+        )
+
+        self.assertEqual(
+            period.field_17,
+            Decimal('270.00'),
+        )
+
+    def test_update_income_creates_audit_log(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Старое описание',
+            financial_account=self.account,
+            original_amount=Decimal('100'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        self.service.update_income(
+            income=income,
+            description='Новое описание',
+        )
+
+        audit = AuditLog.objects.get(
+            object_type='IncomeEntry',
+            object_id=income.pk,
+            action='update',
+        )
+
+        self.assertEqual(
+            audit.old_values['description'],
+            'Старое описание',
+        )
+
+        self.assertEqual(
+            audit.new_values['description'],
+            'Новое описание',
+        )
+
+    def test_move_income_to_another_month(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Переносимый доход',
+            financial_account=self.account,
+            original_amount=Decimal('100'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        september_date = timezone.make_aware(
+            datetime(
+                2026,
+                9,
+                5,
+                12,
+                0,
+            )
+        )
+
+        self.service.update_income(
+            income=income,
+            received_at=september_date,
+            tax_period_deadline=date(
+                2026,
+                10,
+                15,
+            ),
+        )
+
+        august = TaxPeriod.objects.get(
+            user=self.user,
+            year=2026,
+            month=8,
+        )
+
+        september = TaxPeriod.objects.get(
+            user=self.user,
+            year=2026,
+            month=9,
+        )
+
+        income.refresh_from_db()
+
+        self.assertEqual(
+            income.received_at.month,
+            9,
+        )
+
+        self.assertEqual(
+            august.field_20,
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            august.field_17,
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            august.field_15,
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            september.field_20,
+            Decimal('270.00'),
+        )
+
+        self.assertEqual(
+            september.field_17,
+            Decimal('270.00'),
+        )
+
+        self.assertEqual(
+            september.field_15,
+            Decimal('270.00'),
+        )
+
+    def test_delete_income_is_soft_delete(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Удаляемый доход',
+            financial_account=self.account,
+            original_amount=Decimal('500'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        self.service.delete_income(
+            income=income,
+        )
+
+        income.refresh_from_db()
+
+        self.assertTrue(income.is_deleted)
+
+        self.assertIsNotNone(income.deleted_at)
+
+        # Физически запись из БД не удалена.
+        self.assertEqual(
+            IncomeEntry.objects.count(),
+            1,
+        )
+
+    def test_delete_income_recalculates_tax_period(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Удаляемый доход',
+            financial_account=self.account,
+            original_amount=Decimal('500'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        period = TaxPeriod.objects.get(
+            user=self.user,
+            year=2026,
+            month=8,
+        )
+
+        self.assertEqual(
+            period.field_20,
+            Decimal('1350.00'),
+        )
+
+        self.service.delete_income(
+            income=income,
+        )
+
+        period.refresh_from_db()
+
+        self.assertEqual(
+            period.field_20,
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            period.field_17,
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            period.field_15,
+            Decimal('0.00'),
+        )
+
+    def test_delete_income_creates_audit_log(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Удаляемый доход',
+            financial_account=self.account,
+            original_amount=Decimal('100'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        self.service.delete_income(
+            income=income,
+        )
+
+        audit = AuditLog.objects.get(
+            object_type='IncomeEntry',
+            object_id=income.pk,
+            action='delete',
+        )
+
+        self.assertFalse(audit.old_values['is_deleted'])
+
+        self.assertTrue(audit.new_values['is_deleted'])
+
+    def test_deleted_income_cannot_be_updated(self):
+        income = self.service.create_income(
+            user=self.user,
+            received_at=self.received_at,
+            description='Удаляемый доход',
+            financial_account=self.account,
+            original_amount=Decimal('100'),
+            original_currency=self.usd,
+            declaration_category='cashless_20',
+            manual_rate_value=Decimal('2.70'),
+            tax_period_deadline=self.deadline,
+        )
+
+        self.service.delete_income(
+            income=income,
+        )
+
+        with self.assertRaises(ValidationError):
+            self.service.update_income(
+                income=income,
+                description='Попытка изменить',
+            )
