@@ -17,6 +17,7 @@ class Invoice(models.Model):
     INVOICE_STATUS = [
         ('created', 'Создан'),
         ('pending', 'Ожидает оплаты'),
+        ('partially_paid', 'Частично оплачен'),
         ('paid', 'Оплачен'),
         ('cancelled', 'Отменён'),
     ]
@@ -317,10 +318,10 @@ class InvoicePayment(models.Model):
 
     amount = models.DecimalField(
         verbose_name='Сумма оплаты',
-        max_digits=10,
+        max_digits=18,
         decimal_places=2,
         validators=[
-            MinValueValidator('0.01'),
+            MinValueValidator(Decimal('0.01')),
         ],
     )
 
@@ -339,6 +340,17 @@ class InvoicePayment(models.Model):
         verbose_name='Дата создания',
         auto_now_add=True,
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'invoice',
+                    'income_entry',
+                ],
+                name='unique_invoice_income_payment',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.invoice.number} - {self.amount} {self.currency.code}'
