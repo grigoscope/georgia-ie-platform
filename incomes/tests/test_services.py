@@ -511,7 +511,6 @@ class IncomeServiceTests(TestCase):
 
         self.assertIsNotNone(income.deleted_at)
 
-        # Физически запись из БД не удалена.
         self.assertEqual(
             IncomeEntry.objects.count(),
             1,

@@ -22,6 +22,9 @@ from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from config.views import HealthCheckAPIView
+from django.contrib import admin
+from django.urls import include, path
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,6 +47,14 @@ urlpatterns = [
         'api/v1/redoc/',
         SpectacularRedocView.as_view(),
         name='redoc',
+    ),
+    path(
+        'admin/', 
+        admin.site.urls
+    ),
+    path(
+        'api/',
+        include('incomes.urls'),
     ),
 ]
 

@@ -10,7 +10,6 @@ from incomes.models import IncomeEntry
 from taxes.models import TaxPeriod
 from taxes.services import TaxPeriodCalculationService
 
-
 UNSET = object()
 
 
@@ -85,9 +84,7 @@ class IncomeService:
             invoice=invoice,
         )
 
-        self._validate_category(
-            declaration_category
-        )
+        self._validate_category(declaration_category)
 
         conversion = self.conversion_service.convert(
             amount=original_amount,
@@ -111,28 +108,14 @@ class IncomeService:
             document_number=document_number,
             document_date=document_date,
             invoice=invoice,
-            original_amount=conversion[
-                'original_amount'
-            ],
+            original_amount=conversion['original_amount'],
             original_currency=original_currency,
-            exchange_rate_value=conversion[
-                'rate_value'
-            ],
-            exchange_rate_unit=conversion[
-                'rate_unit'
-            ],
-            exchange_rate_source=conversion[
-                'source'
-            ],
-            exchange_rate_date=conversion[
-                'rate_date'
-            ],
-            exchange_rate_time=conversion[
-                'rate_time'
-            ],
-            amount_gel=conversion[
-                'amount_gel'
-            ],
+            exchange_rate_value=conversion['rate_value'],
+            exchange_rate_unit=conversion['rate_unit'],
+            exchange_rate_source=conversion['source'],
+            exchange_rate_date=conversion['rate_date'],
+            exchange_rate_time=conversion['rate_time'],
+            amount_gel=conversion['amount_gel'],
             declaration_category=declaration_category,
             vat_amount=vat_amount,
             comment=comment,
@@ -187,9 +170,7 @@ class IncomeService:
         """Изменить доход."""
 
         if income.is_deleted:
-            raise ValidationError(
-                'Нельзя изменить удалённый доход.'
-            )
+            raise ValidationError('Нельзя изменить удалённый доход.')
 
         user = income.user
 
@@ -198,29 +179,15 @@ class IncomeService:
 
         old_values = self._audit_values(income)
 
-        new_received_at = (
-            received_at
-            if received_at is not None
-            else income.received_at
-        )
+        new_received_at = received_at if received_at is not None else income.received_at
 
         new_financial_account = (
-            financial_account
-            if financial_account is not None
-            else income.financial_account
+            financial_account if financial_account is not None else income.financial_account
         )
 
-        new_counterparty = (
-            income.counterparty
-            if counterparty is UNSET
-            else counterparty
-        )
+        new_counterparty = income.counterparty if counterparty is UNSET else counterparty
 
-        new_invoice = (
-            income.invoice
-            if invoice is UNSET
-            else invoice
-        )
+        new_invoice = income.invoice if invoice is UNSET else invoice
 
         new_category = (
             declaration_category
@@ -235,9 +202,7 @@ class IncomeService:
             invoice=new_invoice,
         )
 
-        self._validate_category(
-            new_category
-        )
+        self._validate_category(new_category)
 
         if description is not None:
             income.description = description
@@ -305,9 +270,7 @@ class IncomeService:
         """Мягко удалить доход."""
 
         if income.is_deleted:
-            raise ValidationError(
-                'Доход уже удалён.'
-            )
+            raise ValidationError('Доход уже удалён.')
 
         user = income.user
 
@@ -356,11 +319,7 @@ class IncomeService:
     ):
         """Пересчитать налоговые периоды после изменения дохода."""
 
-        # Доход остался в том же месяце.
-        if (
-            old_year == new_year
-            and old_month == new_month
-        ):
+        if old_year == new_year and old_month == new_month:
             self.tax_service.recalculate_from_month(
                 user=user,
                 year=old_year,
@@ -369,7 +328,6 @@ class IncomeService:
 
             return
 
-        # Пересчитываем старый период.
         self.tax_service.recalculate_from_month(
             user=user,
             year=old_year,
@@ -382,24 +340,14 @@ class IncomeService:
             month=new_month,
         ).exists()
 
-        if (
-            not new_period_exists
-            and tax_period_deadline is None
-        ):
-            raise ValidationError(
-                'Для нового налогового периода '
-                'необходимо указать deadline.'
-            )
+        if not new_period_exists and tax_period_deadline is None:
+            raise ValidationError('Для нового налогового периода необходимо указать deadline.')
 
         self.tax_service.recalculate_from_month(
             user=user,
             year=new_year,
             month=new_month,
-            deadline=(
-                tax_period_deadline
-                if not new_period_exists
-                else None
-            ),
+            deadline=(tax_period_deadline if not new_period_exists else None),
         )
 
     @staticmethod
@@ -437,39 +385,19 @@ class IncomeService:
         """Проверить принадлежность связанных объектов."""
 
         if financial_account.user_id != user.id:
-            raise ValidationError(
-                'Финансовый счёт принадлежит '
-                'другому пользователю.'
-            )
+            raise ValidationError('Финансовый счёт принадлежит другому пользователю.')
 
-        if (
-            counterparty
-            and counterparty.user_id != user.id
-        ):
-            raise ValidationError(
-                'Контрагент принадлежит '
-                'другому пользователю.'
-            )
+        if counterparty and counterparty.user_id != user.id:
+            raise ValidationError('Контрагент принадлежит другому пользователю.')
 
-        if (
-            invoice
-            and invoice.user_id != user.id
-        ):
-            raise ValidationError(
-                'Инвойс принадлежит '
-                'другому пользователю.'
-            )
+        if invoice and invoice.user_id != user.id:
+            raise ValidationError('Инвойс принадлежит другому пользователю.')
 
     @staticmethod
     def _validate_category(category):
         """Проверить графу декларации."""
 
-        valid_categories = {
-            value
-            for value, _ in IncomeEntry.DECLARATION_CATEGORIES
-        }
+        valid_categories = {value for value, _ in IncomeEntry.DECLARATION_CATEGORIES}
 
         if category not in valid_categories:
-            raise ValidationError(
-                'Некорректная категория декларации.'
-            )
+            raise ValidationError('Некорректная категория декларации.')
