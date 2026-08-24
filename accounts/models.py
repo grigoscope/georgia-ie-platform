@@ -15,6 +15,11 @@ class User(AbstractUser):
 
     email = models.EmailField(verbose_name='Email-адрес', unique=True)
 
+    token_version = models.PositiveIntegerField(
+        verbose_name='Версия JWT-токенов',
+        default=0,
+    )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 

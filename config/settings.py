@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
     'accounts',
     'finances',
@@ -115,7 +116,10 @@ MAILERS = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': ('drf_spectacular.openapi.AutoSchema'),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        ('accounts.authentication.VersionedJWTAuthentication'),
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
@@ -127,15 +131,30 @@ SPECTACULAR_SETTINGS = {
 
 AUTH_USER_MODEL = 'accounts.User'
 
-INVOICE_PDF_FONT_PATH = (
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-)
+INVOICE_PDF_FONT_PATH = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
-INVOICE_PDF_FONT_BOLD_PATH = (
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-)
+INVOICE_PDF_FONT_BOLD_PATH = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 
 BUSINESS_TIME_ZONE = os.getenv(
     'BUSINESS_TIME_ZONE',
     'Asia/Tbilisi',
+)
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': (timedelta(minutes=15)),
+    'REFRESH_TOKEN_LIFETIME': (timedelta(days=7)),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    'DEFAULT_FROM_EMAIL',
+    'noreply@georgia-ie.local',
+)
+
+PASSWORD_RESET_FRONTEND_URL = os.getenv(
+    'PASSWORD_RESET_FRONTEND_URL',
+    ('http://localhost:5173/reset-password'),
 )

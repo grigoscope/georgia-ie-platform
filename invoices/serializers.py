@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from exchange_rates.models import Currency
@@ -86,7 +88,7 @@ class InvoicePaymentInputSerializer(serializers.Serializer):
     amount = serializers.DecimalField(
         max_digits=18,
         decimal_places=2,
-        min_value=0.01,
+        min_value=Decimal('0.01'),
     )
 
     declaration_category = serializers.ChoiceField(
@@ -135,7 +137,7 @@ class InvoicePaymentInputSerializer(serializers.Serializer):
     ready_amount_gel = serializers.DecimalField(
         max_digits=18,
         decimal_places=2,
-        min_value=0.01,
+        min_value=Decimal('0.01'),
         required=False,
         allow_null=True,
     )
