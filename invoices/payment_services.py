@@ -119,7 +119,7 @@ class InvoicePaymentService:
         financial_account,
         amount,
         declaration_category,
-        tax_period_deadline,
+        tax_period_deadline=None,
         payment_method='',
         manual_rate_value=None,
         manual_rate_unit=1,

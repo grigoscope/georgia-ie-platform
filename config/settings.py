@@ -134,3 +134,8 @@ INVOICE_PDF_FONT_PATH = (
 INVOICE_PDF_FONT_BOLD_PATH = (
     '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 )
+
+BUSINESS_TIME_ZONE = os.getenv(
+    'BUSINESS_TIME_ZONE',
+    'Asia/Tbilisi',
+)

@@ -4,6 +4,11 @@ from django.db.models import Count, Sum
 from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 
+from config.business_time import (
+    get_business_timezone,
+    period_bounds,
+    year_bounds,
+)
 from incomes.models import IncomeEntry
 from taxes.models import TaxPeriod
 
@@ -23,7 +28,9 @@ class IncomeReportService:
     def dashboard(self, *, user):
         """Основные показатели для dashboard."""
 
-        today = timezone.localdate()
+        today = timezone.localdate(
+            timezone=get_business_timezone(),
+        )
 
         monthly = self.monthly(
             user=user,
@@ -160,7 +167,12 @@ class IncomeReportService:
         )
 
         month_rows = (
-            queryset.annotate(report_month=ExtractMonth('received_at'))
+            queryset.annotate(
+                report_month=ExtractMonth(
+                    'received_at',
+                    tzinfo=get_business_timezone(),
+                )
+            )
             .values('report_month')
             .annotate(
                 total_gel=Sum('amount_gel'),
@@ -394,16 +406,29 @@ class IncomeReportService:
 
         queryset = self._base_queryset(user=user)
 
-        if year is not None:
-            queryset = queryset.filter(received_at__year=year)
-
         if month is not None:
             self._validate_month(month)
 
             if year is None:
                 raise ValueError('Для фильтрации по месяцу необходимо указать год.')
 
-            queryset = queryset.filter(received_at__month=month)
+            start, end = period_bounds(
+                year=year,
+                month=month,
+            )
+
+            return queryset.filter(
+                received_at__gte=start,
+                received_at__lt=end,
+            )
+
+        if year is not None:
+            start, end = year_bounds(year=year)
+
+            return queryset.filter(
+                received_at__gte=start,
+                received_at__lt=end,
+            )
 
         return queryset
 

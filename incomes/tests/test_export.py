@@ -2,6 +2,7 @@ import csv
 import io
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -225,4 +226,66 @@ class IncomeCSVExportAPITests(APITestCase):
         self.assertNotIn(
             'Июль',
             text,
+        )
+
+    def test_export_uses_tbilisi_month_boundary(
+        self,
+    ):
+        received_at = datetime(
+            2026,
+            8,
+            31,
+            21,
+            30,
+            tzinfo=ZoneInfo('UTC'),
+        )
+
+        IncomeEntry.objects.create(
+            user=self.user,
+            received_at=received_at,
+            description='September boundary',
+            financial_account=self.account,
+            original_amount=Decimal('100.00'),
+            original_currency=self.usd,
+            exchange_rate_value=Decimal('2.7000000000'),
+            exchange_rate_unit=1,
+            exchange_rate_source='manual',
+            exchange_rate_date=(received_at.date()),
+            amount_gel=Decimal('270.00'),
+            declaration_category=('cashless_20'),
+        )
+
+        august_response = self.client.get(
+            self.url,
+            {
+                'year': 2026,
+                'month': 8,
+            },
+        )
+
+        august_text = august_response.content.decode('utf-8-sig')
+
+        self.assertNotIn(
+            'September boundary',
+            august_text,
+        )
+
+        september_response = self.client.get(
+            self.url,
+            {
+                'year': 2026,
+                'month': 9,
+            },
+        )
+
+        september_text = september_response.content.decode('utf-8-sig')
+
+        self.assertIn(
+            'September boundary',
+            september_text,
+        )
+
+        self.assertIn(
+            '2026-09-01',
+            september_text,
         )

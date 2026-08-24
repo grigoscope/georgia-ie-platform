@@ -361,7 +361,7 @@ class InvoicePaymentServiceTests(TestCase):
 
         self.assertEqual(
             self.invoice.status,
-            'created',
+            'draft',
         )
 
         self.assertEqual(

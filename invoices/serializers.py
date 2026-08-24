@@ -101,7 +101,8 @@ class InvoicePaymentInputSerializer(serializers.Serializer):
     )
 
     tax_period_deadline = serializers.DateField(
-        required=True,
+        required=False,
+        allow_null=True,
     )
 
     payment_method = serializers.CharField(

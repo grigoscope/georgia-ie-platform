@@ -12,6 +12,9 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
+    Image as RLImage,
+)
+from reportlab.platypus import (
     KeepTogether,
     Paragraph,
     SimpleDocTemplate,
@@ -109,6 +112,12 @@ class InvoicePDFService:
         )
 
         self._add_payment_details(
+            story=story,
+            invoice=invoice,
+            styles=styles,
+        )
+
+        self._add_signature(
             story=story,
             invoice=invoice,
             styles=styles,
@@ -770,6 +779,88 @@ class InvoicePDFService:
                 ]
             )
         )
+
+    def _add_signature(
+        self,
+        *,
+        story,
+        invoice,
+        styles,
+    ):
+        """Добавить подпись предпринимателя в PDF."""
+
+        try:
+            profile = invoice.user.entrepreneur_profile
+        except AttributeError:
+            return
+
+        signature_file = profile.signature_file
+
+        if not signature_file:
+            return
+
+        signature_file.open('rb')
+
+        try:
+            signature_bytes = BytesIO(signature_file.read())
+        finally:
+            signature_file.close()
+
+        try:
+            image = RLImage(signature_bytes)
+
+            image._restrictSize(
+                55 * mm,
+                25 * mm,
+            )
+
+        except Exception:
+            # Некорректная подпись не должна
+            # ломать весь инвойс.
+            return
+
+        story.append(
+            Spacer(
+                1,
+                6 * mm,
+            )
+        )
+
+        story.append(
+            Paragraph(
+                'Signature',
+                styles['section'],
+            )
+        )
+
+        story.append(
+            Spacer(
+                1,
+                2 * mm,
+            )
+        )
+
+        story.append(image)
+
+        seller_name = invoice.seller_snapshot.get(
+            'business_name',
+            '',
+        )
+
+        if seller_name:
+            story.append(
+                Spacer(
+                    1,
+                    2 * mm,
+                )
+            )
+
+            story.append(
+                Paragraph(
+                    seller_name,
+                    styles['normal'],
+                )
+            )
 
     def _party_text(
         self,

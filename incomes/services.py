@@ -5,6 +5,10 @@ from django.db import transaction
 from django.utils import timezone
 
 from audit.services import AuditService
+from config.business_time import (
+    business_date,
+    business_period,
+)
 from exchange_rates.services import GELConversionService
 from incomes.models import IncomeEntry
 from taxes.models import TaxPeriod
@@ -94,7 +98,7 @@ class IncomeService:
             manual_rate_unit=manual_rate_unit,
             manual_source=manual_source,
             ready_amount_gel=ready_amount_gel,
-            rate_date=received_at.date(),
+            rate_date=business_date(received_at),
         )
 
         income = IncomeEntry(
@@ -125,10 +129,12 @@ class IncomeService:
         income.full_clean()
         income.save()
 
+        income_year, income_month = business_period(received_at)
+
         self.tax_service.recalculate_from_month(
             user=user,
-            year=received_at.year,
-            month=received_at.month,
+            year=income_year,
+            month=income_month,
             deadline=tax_period_deadline,
         )
 
@@ -174,8 +180,7 @@ class IncomeService:
 
         user = income.user
 
-        old_year = income.received_at.year
-        old_month = income.received_at.month
+        old_year, old_month = business_period(income.received_at)
 
         old_values = self._audit_values(income)
 
@@ -231,8 +236,7 @@ class IncomeService:
         income.full_clean()
         income.save()
 
-        new_year = income.received_at.year
-        new_month = income.received_at.month
+        new_year, new_month = business_period(income.received_at)
 
         self._recalculate_after_change(
             user=user,
@@ -287,10 +291,12 @@ class IncomeService:
             ]
         )
 
+        income_year, income_month = business_period(income.received_at)
+
         self.tax_service.recalculate_from_month(
             user=user,
-            year=income.received_at.year,
-            month=income.received_at.month,
+            year=income_year,
+            month=income_month,
         )
 
         self.audit_service.log(

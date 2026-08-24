@@ -85,9 +85,68 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         *args,
         **kwargs,
     ):
+        partial = kwargs.pop(
+            'partial',
+            False,
+        )
+
+        invoice = self.get_object()
+
+        serializer = self.get_serializer(
+            invoice,
+            data=request.data,
+            partial=partial,
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.validated_data.copy()
+
+        unset = InvoiceService.UNSET
+
+        items = data.pop(
+            'items',
+            unset,
+        )
+
+        financial_account = data.pop(
+            'financial_account',
+            unset,
+        )
+
+        discount = data.pop(
+            'discount_amount',
+            unset,
+        )
+
+        extra_charge = data.pop(
+            'extra_charge_amount',
+            unset,
+        )
+
+        service = InvoiceService()
+
+        try:
+            updated_invoice = service.update_invoice(
+                invoice=invoice,
+                items=items,
+                financial_account=(financial_account),
+                discount=discount,
+                extra_charge=(extra_charge),
+                **data,
+            )
+
+        except DjangoValidationError as error:
+            return Response(
+                {
+                    'detail': (error.messages),
+                },
+                status=(status.HTTP_400_BAD_REQUEST),
+            )
+
         return Response(
-            {'detail': ('Редактирование инвойса пока не реализовано.')},
-            status=(status.HTTP_405_METHOD_NOT_ALLOWED),
+            self.get_serializer(updated_invoice).data,
+            status=status.HTTP_200_OK,
         )
 
     def partial_update(
@@ -96,9 +155,12 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         *args,
         **kwargs,
     ):
-        return Response(
-            {'detail': ('Редактирование инвойса пока не реализовано.')},
-            status=(status.HTTP_405_METHOD_NOT_ALLOWED),
+        kwargs['partial'] = True
+
+        return self.update(
+            request,
+            *args,
+            **kwargs,
         )
 
     def destroy(
@@ -230,7 +292,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 financial_account=(data['financial_account']),
                 amount=data['amount'],
                 declaration_category=(data.get('declaration_category')),
-                tax_period_deadline=(data['tax_period_deadline']),
+                tax_period_deadline=(data.get('tax_period_deadline')),
                 payment_method=(
                     data.get(
                         'payment_method',

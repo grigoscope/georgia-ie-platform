@@ -15,7 +15,7 @@ class Invoice(models.Model):
     ]
 
     INVOICE_STATUS = [
-        ('created', 'Создан'),
+        ('draft', 'Черновик'),
         ('pending', 'Ожидает оплаты'),
         ('partially_paid', 'Частично оплачен'),
         ('paid', 'Оплачен'),
@@ -73,7 +73,7 @@ class Invoice(models.Model):
         verbose_name='Статус',
         max_length=30,
         choices=INVOICE_STATUS,
-        default='created',
+        default='draft',
     )
 
     counterparty = models.ForeignKey(

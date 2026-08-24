@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import re
 import tempfile
@@ -5,6 +6,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 
 from accounts.models import EntrepreneurProfile
@@ -333,4 +335,35 @@ class InvoicePDFServiceTests(TestCase):
         self.assertNotEqual(
             first_checksum,
             second_checksum,
+        )
+
+    def test_pdf_contains_signature(self):
+        signature_png = base64.b64decode(
+            (
+                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB'
+                'CAQAAAC1HAwCAAAAC0lEQVR42mNk'
+                'YAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+            )
+        )
+
+        self.profile.signature_file.save(
+            'signature.png',
+            ContentFile(signature_png),
+            save=True,
+        )
+
+        invoice = self._create_invoice()
+
+        self.pdf_service.generate(invoice=invoice)
+
+        invoice.refresh_from_db()
+
+        with invoice.pdf_file.open('rb') as file:
+            pdf_bytes = file.read()
+
+        self.assertTrue(pdf_bytes.startswith(b'%PDF'))
+
+        self.assertIn(
+            b'/Subtype /Image',
+            pdf_bytes,
         )

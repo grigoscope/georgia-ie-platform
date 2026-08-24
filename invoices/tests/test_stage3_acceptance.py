@@ -292,7 +292,7 @@ class Stage3AcceptanceTests(TestCase):
 
         self.assertEqual(
             invoice.status,
-            'created',
+            'draft',
         )
 
         self.assertEqual(

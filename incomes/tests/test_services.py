@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -283,12 +284,23 @@ class IncomeServiceTests(TestCase):
             0,
         )
 
-    def test_transaction_rolls_back_if_tax_period_fails(self):
+    @patch(
+        'incomes.services.'
+        'TaxPeriodCalculationService.recalculate_from_month'
+    )
+    def test_transaction_rolls_back_if_tax_period_fails(
+        self,
+        mock_recalculate,
+    ):
+        mock_recalculate.side_effect = ValidationError(
+            'Tax period calculation failed'
+        )
+
         with self.assertRaises(ValidationError):
             self.service.create_income(
                 user=self.user,
                 received_at=self.received_at,
-                description='Без deadline',
+                description='Transaction rollback test',
                 financial_account=self.account,
                 original_amount=Decimal('500'),
                 original_currency=self.usd,

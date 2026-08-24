@@ -198,7 +198,7 @@ class InvoiceAPITests(APITestCase):
 
         self.assertEqual(
             invoice.status,
-            'created',
+            'draft',
         )
 
     def test_create_invoice_with_discount_and_extra_charge(self):
@@ -433,7 +433,7 @@ class InvoiceAPITests(APITestCase):
             status.HTTP_404_NOT_FOUND,
         )
 
-    def test_patch_is_not_allowed(self):
+    def test_patch_draft_invoice(self):
         response = self.client.post(
             self.list_url,
             self._payload(),
@@ -450,14 +450,142 @@ class InvoiceAPITests(APITestCase):
         response = self.client.patch(
             url,
             {
-                'notes': 'Hacked notes',
+                'notes': ('Updated draft notes'),
+                'discount_amount': ('10.00'),
             },
             format='json',
         )
 
         self.assertEqual(
             response.status_code,
-            status.HTTP_405_METHOD_NOT_ALLOWED,
+            status.HTTP_200_OK,
+        )
+
+        invoice = Invoice.objects.get(id=invoice_id)
+
+        self.assertEqual(
+            invoice.status,
+            'draft',
+        )
+
+        self.assertEqual(
+            invoice.notes,
+            'Updated draft notes',
+        )
+
+        self.assertEqual(
+            invoice.subtotal,
+            Decimal('310.00'),
+        )
+
+        self.assertEqual(
+            invoice.discount_amount,
+            Decimal('10.00'),
+        )
+
+        self.assertEqual(
+            invoice.total_amount,
+            Decimal('300.00'),
+        )
+
+    def test_patch_draft_items_recalculates_total(
+        self,
+    ):
+        response = self.client.post(
+            self.list_url,
+            self._payload(),
+            format='json',
+        )
+
+        invoice_id = response.data['id']
+
+        url = reverse(
+            'invoice-detail',
+            args=[invoice_id],
+        )
+
+        response = self.client.patch(
+            url,
+            {
+                'items': [
+                    {
+                        'description': ('New service'),
+                        'quantity': '2.000',
+                        'unit': 'service',
+                        'unit_price': ('250.00'),
+                    }
+                ],
+            },
+            format='json',
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        invoice = Invoice.objects.get(id=invoice_id)
+
+        self.assertEqual(
+            invoice.invoice_items.count(),
+            1,
+        )
+
+        self.assertEqual(
+            invoice.subtotal,
+            Decimal('500.00'),
+        )
+
+        self.assertEqual(
+            invoice.total_amount,
+            Decimal('500.00'),
+        )
+
+    def test_non_draft_invoice_cannot_be_patched(
+        self,
+    ):
+        response = self.client.post(
+            self.list_url,
+            self._payload(),
+            format='json',
+        )
+
+        invoice_id = response.data['id']
+
+        invoice = Invoice.objects.get(id=invoice_id)
+
+        invoice.status = 'pending'
+
+        invoice.save(
+            update_fields=[
+                'status',
+                'updated_at',
+            ]
+        )
+
+        url = reverse(
+            'invoice-detail',
+            args=[invoice_id],
+        )
+
+        response = self.client.patch(
+            url,
+            {
+                'notes': ('Should not change'),
+            },
+            format='json',
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        invoice.refresh_from_db()
+
+        self.assertNotEqual(
+            invoice.notes,
+            'Should not change',
         )
 
     def test_delete_is_not_allowed(self):

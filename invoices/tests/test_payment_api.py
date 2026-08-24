@@ -175,7 +175,7 @@ class InvoicePaymentAPITests(APITestCase):
 
         self.assertEqual(
             response.data['status'],
-            'created',
+            'draft',
         )
 
     def test_create_partial_payment(self):
@@ -543,7 +543,7 @@ class InvoicePaymentAPITests(APITestCase):
 
         self.assertEqual(
             self.invoice.status,
-            'created',
+            'draft',
         )
 
     def test_foreign_financial_account_is_rejected(self):

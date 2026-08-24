@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -541,4 +542,57 @@ class IncomeReportServiceTests(TestCase):
         self.assertEqual(
             report['recent_incomes'][0]['amount_gel'],
             Decimal('300'),
+        )
+
+    def test_monthly_report_uses_tbilisi_boundary(
+        self,
+    ):
+        received_at = datetime(
+            2026,
+            8,
+            31,
+            21,
+            30,
+            tzinfo=ZoneInfo('UTC'),
+        )
+
+        IncomeEntry.objects.create(
+            user=self.user,
+            received_at=received_at,
+            description='September income',
+            financial_account=(self.gel_account),
+            original_amount=Decimal('100.00'),
+            original_currency=self.gel,
+            exchange_rate_value=Decimal('1.0000000000'),
+            exchange_rate_unit=1,
+            exchange_rate_source='GEL',
+            exchange_rate_date=date(
+                2026,
+                9,
+                1,
+            ),
+            amount_gel=Decimal('100.00'),
+            declaration_category=('cashless_20'),
+        )
+
+        august = self.service.monthly(
+            user=self.user,
+            year=2026,
+            month=8,
+        )
+
+        september = self.service.monthly(
+            user=self.user,
+            year=2026,
+            month=9,
+        )
+
+        self.assertEqual(
+            august['total_gel'],
+            Decimal('0.00'),
+        )
+
+        self.assertEqual(
+            september['total_gel'],
+            Decimal('100.00'),
         )

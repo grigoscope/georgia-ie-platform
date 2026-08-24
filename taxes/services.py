@@ -5,7 +5,13 @@ from django.db import transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
 
+from config.business_time import (
+    period_bounds,
+    year_bounds,
+)
 from incomes.models import IncomeEntry
+from notifications.services import NotificationService
+from taxes.deadlines import TaxDeadlineService
 from taxes.models import TaxPeriod
 
 
@@ -33,49 +39,67 @@ class TaxPeriodCalculationService:
         ).first()
 
         if period is None and deadline is None:
-            raise ValidationError('Для нового налогового периода необходимо указать deadline.')
+            deadline = TaxDeadlineService.calculate(
+                year=year,
+                month=month,
+            )
+
+        period_start, period_end = period_bounds(
+            year=year,
+            month=month,
+        )
 
         incomes = IncomeEntry.objects.filter(
             user=user,
-            received_at__year=year,
-            received_at__month=month,
+            received_at__gte=period_start,
+            received_at__lt=period_end,
             is_deleted=False,
         )
 
         sums = incomes.aggregate(
             field_18=Sum(
                 'amount_gel',
-                filter=Q(declaration_category='cash_register_18'),
+                filter=Q(declaration_category=('cash_register_18')),
                 default=Decimal('0.00'),
             ),
             field_19=Sum(
                 'amount_gel',
-                filter=Q(declaration_category='physical_pos_19'),
+                filter=Q(declaration_category=('physical_pos_19')),
                 default=Decimal('0.00'),
             ),
             field_20=Sum(
                 'amount_gel',
-                filter=Q(declaration_category='cashless_20'),
+                filter=Q(declaration_category=('cashless_20')),
                 default=Decimal('0.00'),
             ),
             field_21=Sum(
                 'amount_gel',
-                filter=Q(declaration_category='other_21'),
+                filter=Q(declaration_category=('other_21')),
                 default=Decimal('0.00'),
             ),
         )
 
         field_18 = self._money(sums['field_18'])
+
         field_19 = self._money(sums['field_19'])
+
         field_20 = self._money(sums['field_20'])
+
         field_21 = self._money(sums['field_21'])
 
         field_17 = self._money(field_18 + field_19 + field_20 + field_21)
 
+        year_start, _ = year_bounds(year=year)
+
+        _, cumulative_end = period_bounds(
+            year=year,
+            month=month,
+        )
+
         cumulative = IncomeEntry.objects.filter(
             user=user,
-            received_at__year=year,
-            received_at__month__lte=month,
+            received_at__gte=year_start,
+            received_at__lt=cumulative_end,
             is_deleted=False,
         ).aggregate(
             total=Sum(
@@ -88,6 +112,7 @@ class TaxPeriodCalculationService:
 
         if period is not None:
             tax_rate = period.tax_rate
+
         else:
             tax_rate = user.entrepreneur_profile.tax_rate
 
@@ -124,26 +149,38 @@ class TaxPeriodCalculationService:
         period.field_26 = field_26
 
         period.calculation_status = 'calculated'
+
         period.calculated_at = timezone.now()
+
+        should_notify = False
 
         if old_values is not None:
             changed = any(
                 [
-                    old_values['field_18'] != field_18,
-                    old_values['field_19'] != field_19,
-                    old_values['field_20'] != field_20,
-                    old_values['field_21'] != field_21,
-                    old_values['field_17'] != field_17,
-                    old_values['field_15'] != field_15,
-                    old_values['field_26'] != field_26,
+                    (old_values['field_18'] != field_18),
+                    (old_values['field_19'] != field_19),
+                    (old_values['field_20'] != field_20),
+                    (old_values['field_21'] != field_21),
+                    (old_values['field_17'] != field_17),
+                    (old_values['field_15'] != field_15),
+                    (old_values['field_26'] != field_26),
                 ]
             )
 
-            if changed and period.declaration_status == 'submitted':
+            should_notify = changed and period.declaration_status == 'submitted'
+
+            if should_notify:
                 period.changed_after_submission = True
 
         period.full_clean()
         period.save()
+
+        if should_notify:
+            (
+                NotificationService.notify_tax_period_changed(
+                    period=period,
+                )
+            )
 
         return period
 
