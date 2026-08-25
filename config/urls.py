@@ -59,6 +59,10 @@ urlpatterns = [
         'api/v1/',
         include('accounts.profile_urls'),
     ),
+    path(
+        'api/v1/',
+        include('finances.urls'),
+    ),
 ]
 
 
