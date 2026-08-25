@@ -67,6 +67,10 @@ urlpatterns = [
         'api/v1/',
         include('exchange_rates.urls'),
     ),
+    path(
+        'api/v1/',
+        include('incomes.api_v1_urls'),
+    ),
 ]
 
 

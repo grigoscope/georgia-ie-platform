@@ -313,6 +313,58 @@ class IncomeService:
 
         return income
 
+    @transaction.atomic
+    def restore_income(
+        self,
+        *,
+        income,
+        actor=None,
+        request_id='',
+        ip_address=None,
+        user_agent='',
+    ):
+        """Восстановить мягко удалённый доход."""
+
+        if not income.is_deleted:
+            raise ValidationError('Доход не удалён.')
+
+        user = income.user
+
+        old_values = self._audit_values(income)
+
+        income.is_deleted = False
+        income.deleted_at = None
+
+        income.save(
+            update_fields=[
+                'is_deleted',
+                'deleted_at',
+                'updated_at',
+            ]
+        )
+
+        income_year, income_month = business_period(income.received_at)
+
+        self.tax_service.recalculate_from_month(
+            user=user,
+            year=income_year,
+            month=income_month,
+        )
+
+        self.audit_service.log(
+            user=user,
+            actor=actor or user,
+            action='restore',
+            obj=income,
+            old_values=old_values,
+            new_values=self._audit_values(income),
+            request_id=request_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+
+        return income
+
     def _recalculate_after_change(
         self,
         *,
