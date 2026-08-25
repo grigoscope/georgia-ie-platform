@@ -75,6 +75,10 @@ urlpatterns = [
         'api/v1/reports/',
         include('incomes.api_v1_report_urls'),
     ),
+    path(
+        'api/v1/',
+        include('taxes.api_v1_urls'),
+    ),
 ]
 
 
