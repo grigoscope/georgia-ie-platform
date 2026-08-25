@@ -14,6 +14,9 @@ from config.pagination import (
     StandardPageNumberPagination,
 )
 from finances.models import FinancialAccount
+from invoices.delivery_mixin import (
+    InvoiceDeliveryMixin,
+)
 from invoices.models import Invoice
 from invoices.payment_services import (
     InvoicePaymentService,
@@ -25,8 +28,11 @@ from invoices.services import InvoiceService
 from invoices.views import InvoiceViewSet
 
 
-class InvoiceV1ViewSet(InvoiceViewSet):
-    """Stage 4 API инвойсов."""
+class InvoiceV1ViewSet(
+    InvoiceDeliveryMixin,
+    InvoiceViewSet,
+):
+    """API инвойсов."""
 
     pagination_class = StandardPageNumberPagination
 

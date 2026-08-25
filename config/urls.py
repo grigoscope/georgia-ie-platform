@@ -83,6 +83,10 @@ urlpatterns = [
         'api/v1/',
         include('invoices.api_v1_urls'),
     ),
+    path(
+        'api/v1/',
+        include('telegram_integration.urls'),
+    ),
 ]
 
 

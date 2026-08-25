@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 
 from django.conf import settings
@@ -354,3 +355,37 @@ class InvoicePayment(models.Model):
 
     def __str__(self):
         return f'{self.invoice.number} - {self.amount} {self.currency.code}'
+
+
+class InvoiceShareLink(models.Model):
+    """Временная публичная ссылка."""
+
+    invoice = models.OneToOneField(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name='share_link',
+    )
+
+    token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+    )
+
+    expires_at = models.DateTimeField()
+
+    revoked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    def __str__(self):
+        return f'{self.invoice.number}: {self.token}'

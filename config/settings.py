@@ -158,3 +158,27 @@ PASSWORD_RESET_FRONTEND_URL = os.getenv(
     'PASSWORD_RESET_FRONTEND_URL',
     ('http://localhost:5173/reset-password'),
 )
+
+TELEGRAM_BOT_TOKEN = os.getenv(
+    'TELEGRAM_BOT_TOKEN',
+    '',
+)
+
+TELEGRAM_WEBHOOK_SECRET = os.getenv(
+    'TELEGRAM_WEBHOOK_SECRET',
+    '',
+)
+
+TELEGRAM_INIT_DATA_MAX_AGE = int(
+    os.getenv(
+        'TELEGRAM_INIT_DATA_MAX_AGE',
+        '600',
+    )
+)
+
+INVOICE_SHARE_TTL_HOURS = int(
+    os.getenv(
+        'INVOICE_SHARE_TTL_HOURS',
+        '24',
+    )
+)
