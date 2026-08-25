@@ -63,6 +63,10 @@ urlpatterns = [
         'api/v1/',
         include('finances.urls'),
     ),
+    path(
+        'api/v1/',
+        include('exchange_rates.urls'),
+    ),
 ]
 
 
