@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'telegram_integration',
     'audit',
     'uploads',
+    'idempotency',
 ]
 
 MIDDLEWARE = [

@@ -14,6 +14,9 @@ from config.pagination import (
     StandardPageNumberPagination,
 )
 from finances.models import FinancialAccount
+from idempotency.decorators import (
+    idempotent,
+)
 from invoices.delivery_mixin import (
     InvoiceDeliveryMixin,
 )
@@ -210,6 +213,22 @@ class InvoiceV1ViewSet(
 
     @action(
         detail=True,
+        methods=['post'],
+        url_path='generate-pdf',
+    )
+    @idempotent
+    def generate_pdf(
+        self,
+        request,
+        pk=None,
+    ):
+        return super().generate_pdf(
+            request,
+            pk=pk,
+        )
+
+    @action(
+        detail=True,
         methods=['get'],
         url_path='pdf',
     )
@@ -281,6 +300,7 @@ class InvoiceV1ViewSet(
         methods=['post'],
         url_path='mark-paid',
     )
+    @idempotent
     @transaction.atomic
     def mark_paid(
         self,
@@ -388,6 +408,7 @@ class InvoiceV1ViewSet(
         methods=['post'],
         url_path='create-income',
     )
+    @idempotent
     def create_income(
         self,
         request,

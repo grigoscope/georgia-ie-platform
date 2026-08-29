@@ -22,6 +22,9 @@ from exchange_rates.services import (
     GELConversionService,
     NBGRateError,
 )
+from idempotency.decorators import (
+    idempotent,
+)
 from incomes.api_v1_serializers import (
     IncomePreviewSerializer,
 )
@@ -37,6 +40,19 @@ class IncomeEntryV1ViewSet(IncomeEntryViewSet):
     """Stage 4 API журнала доходов."""
 
     pagination_class = StandardPageNumberPagination
+
+    @idempotent
+    def create(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+        return super().create(
+            request,
+            *args,
+            **kwargs,
+        )
 
     def get_queryset(self):
         queryset = super().get_queryset()
