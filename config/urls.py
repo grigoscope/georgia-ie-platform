@@ -91,6 +91,14 @@ urlpatterns = [
         'api/v1/',
         include('notifications.api_v1_urls'),
     ),
+    path(
+        'api/v1/',
+        include('audit.api_v1_urls'),
+    ),
+    path(
+        'api/v1/',
+        include('uploads.urls'),
+    ),
 ]
 
 

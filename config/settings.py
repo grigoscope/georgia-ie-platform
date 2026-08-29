@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'notifications',
     'telegram_integration',
     'audit',
+    'uploads',
 ]
 
 MIDDLEWARE = [
@@ -180,5 +181,19 @@ INVOICE_SHARE_TTL_HOURS = int(
     os.getenv(
         'INVOICE_SHARE_TTL_HOURS',
         '24',
+    )
+)
+
+FILE_DOWNLOAD_LINK_TTL = int(
+    os.getenv(
+        'FILE_DOWNLOAD_LINK_TTL',
+        '900',
+    )
+)
+
+MAX_UPLOAD_SIZE = int(
+    os.getenv(
+        'MAX_UPLOAD_SIZE',
+        str(10 * 1024 * 1024),
     )
 )
