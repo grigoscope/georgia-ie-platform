@@ -121,6 +121,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         ('accounts.authentication.VersionedJWTAuthentication'),
     ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'config.renderers.APIJSONRenderer',
+    ],
+    'EXCEPTION_HANDLER': ('config.exceptions.api_exception_handler'),
 }
 
 SPECTACULAR_SETTINGS = {
