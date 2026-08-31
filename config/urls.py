@@ -8,7 +8,9 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from config.views import HealthCheckAPIView
+from config.views import (
+    HealthCheckAPIView,
+)
 
 urlpatterns = [
     path(
@@ -27,12 +29,12 @@ urlpatterns = [
     ),
     path(
         'api/v1/docs/',
-        SpectacularSwaggerView.as_view(),
+        SpectacularSwaggerView.as_view(url_name='schema'),
         name='swagger-ui',
     ),
     path(
         'api/v1/redoc/',
-        SpectacularRedocView.as_view(),
+        SpectacularRedocView.as_view(url_name='schema'),
         name='redoc',
     ),
     path(
@@ -46,10 +48,6 @@ urlpatterns = [
     path(
         'api/',
         include('invoices.urls'),
-    ),
-    path(
-        'api/v1/auth/',
-        include('accounts.urls'),
     ),
     path(
         'api/v1/auth/',
@@ -105,5 +103,5 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT,
+        document_root=(settings.MEDIA_ROOT),
     )

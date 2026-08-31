@@ -129,10 +129,75 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Georgia IE Platform API',
-    'DESCRIPTION': 'Документация для API платформы Georgia IE',
+    'TITLE': ('Georgia IE Platform API'),
+    'DESCRIPTION': ('REST API платформы для индивидуальных предпринимателей в Грузии'),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': (r'/api/v1'),
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+        'displayRequestDuration': True,
+        'filter': True,
+    },
+    'TAGS': [
+        {
+            'name': 'Auth',
+            'description': ('Регистрация и авторизация'),
+        },
+        {
+            'name': 'Profile',
+            'description': ('Профиль предпринимателя'),
+        },
+        {
+            'name': 'Accounts',
+            'description': ('Финансовые счета'),
+        },
+        {
+            'name': 'Counterparties',
+            'description': ('Контрагенты'),
+        },
+        {
+            'name': 'Currencies',
+            'description': ('Валюты и курсы'),
+        },
+        {
+            'name': 'Incomes',
+            'description': ('Доходы'),
+        },
+        {
+            'name': 'Reports',
+            'description': ('Отчёты'),
+        },
+        {
+            'name': 'Taxes',
+            'description': ('Налоговые периоды'),
+        },
+        {
+            'name': 'Invoices',
+            'description': ('Инвойсы'),
+        },
+        {
+            'name': 'Telegram',
+            'description': ('Telegram интеграция'),
+        },
+        {
+            'name': 'Notifications',
+            'description': ('Уведомления'),
+        },
+        {
+            'name': 'Files',
+            'description': ('Файлы'),
+        },
+        {
+            'name': 'Audit',
+            'description': ('Журнал аудита'),
+        },
+        {
+            'name': 'Service',
+            'description': ('Служебные endpoints'),
+        },
+    ],
 }
 
 AUTH_USER_MODEL = 'accounts.User'
