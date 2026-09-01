@@ -1,12 +1,45 @@
-from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiTypes,
+    extend_schema,
+)
+from rest_framework.permissions import (
+    IsAuthenticated,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from incomes.reports import IncomeReportService
+from incomes.report_serializers import (
+    AccountReportRowSerializer,
+    CategoryReportRowSerializer,
+    CurrencyReportRowSerializer,
+    DashboardReportSerializer,
+    MonthlyReportSerializer,
+    YearlyReportSerializer,
+)
+from incomes.reports import (
+    IncomeReportService,
+)
+
+YEAR_PARAMETER = OpenApiParameter(
+    name='year',
+    type=OpenApiTypes.INT,
+    location=OpenApiParameter.QUERY,
+    description='Год',
+)
+
+MONTH_PARAMETER = OpenApiParameter(
+    name='month',
+    type=OpenApiTypes.INT,
+    location=OpenApiParameter.QUERY,
+    description='Месяц от 1 до 12',
+)
 
 
 class BaseReportAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
     report_service_class = IncomeReportService
 
@@ -17,6 +50,10 @@ class BaseReportAPIView(APIView):
 class DashboardReportAPIView(BaseReportAPIView):
     """Dashboard по доходам."""
 
+    @extend_schema(
+        tags=['Reports'],
+        responses={200: DashboardReportSerializer},
+    )
     def get(self, request):
         report = self.get_service().dashboard(
             user=request.user,
@@ -28,13 +65,36 @@ class DashboardReportAPIView(BaseReportAPIView):
 class MonthlyReportAPIView(BaseReportAPIView):
     """Месячный отчёт."""
 
+    @extend_schema(
+        tags=['Reports'],
+        parameters=[
+            OpenApiParameter(
+                name='year',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+                required=True,
+            ),
+            OpenApiParameter(
+                name='month',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+                required=True,
+            ),
+        ],
+        responses={200: MonthlyReportSerializer},
+    )
     def get(self, request):
         try:
             year = int(request.query_params.get('year'))
+
             month = int(request.query_params.get('month'))
-        except (TypeError, ValueError):
+
+        except (
+            TypeError,
+            ValueError,
+        ):
             return Response(
-                {'detail': 'Параметры year и month обязательны и должны быть числами.'},
+                {'detail': ('Параметры year и month обязательны и должны быть числами.')},
                 status=400,
             )
 
@@ -44,6 +104,7 @@ class MonthlyReportAPIView(BaseReportAPIView):
                 year=year,
                 month=month,
             )
+
         except ValueError as error:
             return Response(
                 {
@@ -58,12 +119,28 @@ class MonthlyReportAPIView(BaseReportAPIView):
 class YearlyReportAPIView(BaseReportAPIView):
     """Годовой отчёт."""
 
+    @extend_schema(
+        tags=['Reports'],
+        parameters=[
+            OpenApiParameter(
+                name='year',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+                required=True,
+            )
+        ],
+        responses={200: YearlyReportSerializer},
+    )
     def get(self, request):
         try:
             year = int(request.query_params.get('year'))
-        except (TypeError, ValueError):
+
+        except (
+            TypeError,
+            ValueError,
+        ):
             return Response(
-                {'detail': 'Параметр year обязателен и должен быть числом.'},
+                {'detail': ('Параметр year обязателен и должен быть числом.')},
                 status=400,
             )
 
@@ -78,6 +155,14 @@ class YearlyReportAPIView(BaseReportAPIView):
 class AccountsReportAPIView(BaseReportAPIView):
     """Отчёт по счетам."""
 
+    @extend_schema(
+        tags=['Reports'],
+        parameters=[
+            YEAR_PARAMETER,
+            MONTH_PARAMETER,
+        ],
+        responses={200: AccountReportRowSerializer(many=True)},
+    )
     def get(self, request):
         filters, error_response = self._parse_filters(request)
 
@@ -99,6 +184,14 @@ class AccountsReportAPIView(BaseReportAPIView):
 class CurrenciesReportAPIView(BaseReportAPIView):
     """Отчёт по валютам."""
 
+    @extend_schema(
+        tags=['Reports'],
+        parameters=[
+            YEAR_PARAMETER,
+            MONTH_PARAMETER,
+        ],
+        responses={200: (CurrencyReportRowSerializer(many=True))},
+    )
     def get(self, request):
         filters, error_response = parse_optional_period_filters(request)
 
@@ -133,6 +226,14 @@ class CounterpartiesReportAPIView(BaseReportAPIView):
 class CategoriesReportAPIView(BaseReportAPIView):
     """Отчёт по графам декларации."""
 
+    @extend_schema(
+        tags=['Reports'],
+        parameters=[
+            YEAR_PARAMETER,
+            MONTH_PARAMETER,
+        ],
+        responses={200: CategoryReportRowSerializer(many=True)},
+    )
     def get(self, request):
         filters, error_response = parse_optional_period_filters(request)
 
@@ -147,22 +248,16 @@ class CategoriesReportAPIView(BaseReportAPIView):
         return Response(report)
 
 
-def parse_optional_period_filters(request):
-    """
-    Разобрать необязательные year/month.
-
-    Возможные варианты:
-    без параметров;
-    только year;
-    year + month.
-    """
-
+def parse_optional_period_filters(
+    request,
+):
     year_value = request.query_params.get('year')
+
     month_value = request.query_params.get('month')
 
     if month_value and not year_value:
         return {}, Response(
-            {'detail': 'При указании month необходимо также указать year.'},
+            {'detail': ('При указании month необходимо также указать year.')},
             status=400,
         )
 
@@ -170,18 +265,18 @@ def parse_optional_period_filters(request):
         year = int(year_value) if year_value else None
 
         month = int(month_value) if month_value else None
+
     except ValueError:
         return {}, Response(
-            {'detail': 'year и month должны быть числами.'},
+            {'detail': ('year и month должны быть числами.')},
             status=400,
         )
 
-    if month is not None:
-        if month < 1 or month > 12:
-            return {}, Response(
-                {'detail': 'Месяц должен быть от 1 до 12.'},
-                status=400,
-            )
+    if month is not None and (month < 1 or month > 12):
+        return {}, Response(
+            {'detail': ('Месяц должен быть от 1 до 12.')},
+            status=400,
+        )
 
     return {
         'year': year,

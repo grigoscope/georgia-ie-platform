@@ -37,6 +37,8 @@ class InvoiceV1ViewSet(
 ):
     """API инвойсов."""
 
+    queryset = Invoice.objects.all()
+
     pagination_class = StandardPageNumberPagination
 
     def get_queryset(self):

@@ -1,6 +1,14 @@
 from django.http import FileResponse
 from django.urls import reverse
+from drf_spectacular.utils import (
+    OpenApiTypes,
+    extend_schema,
+)
 from rest_framework import status
+from rest_framework.parsers import (
+    FormParser,
+    MultiPartParser,
+)
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -11,6 +19,7 @@ from rest_framework.views import APIView
 from audit.services import AuditService
 from uploads.models import UserFile
 from uploads.serializers import (
+    DownloadLinkResponseSerializer,
     DownloadLinkSerializer,
     UserFileSerializer,
 )
@@ -26,6 +35,16 @@ class FileUploadAPIView(APIView):
         IsAuthenticated,
     ]
 
+    parser_classes = [
+        MultiPartParser,
+        FormParser,
+    ]
+
+    @extend_schema(
+        tags=['Files'],
+        request=UserFileSerializer,
+        responses={201: UserFileSerializer},
+    )
     def post(self, request):
         serializer = UserFileSerializer(
             data=request.data,
@@ -76,6 +95,11 @@ class FileDownloadLinkAPIView(APIView):
         IsAuthenticated,
     ]
 
+    @extend_schema(
+        tags=['Files'],
+        request=DownloadLinkSerializer,
+        responses={200: (DownloadLinkResponseSerializer)},
+    )
     def post(
         self,
         request,
@@ -128,6 +152,13 @@ class FileDeleteAPIView(APIView):
         IsAuthenticated,
     ]
 
+    @extend_schema(
+        tags=['Files'],
+        request=None,
+        responses={
+            204: None,
+        },
+    )
     def delete(
         self,
         request,
@@ -185,6 +216,16 @@ class PublicFileDownloadAPIView(APIView):
 
     authentication_classes = []
 
+    @extend_schema(
+        tags=['Files'],
+        auth=[],
+        responses={
+            (
+                200,
+                'application/octet-stream',
+            ): OpenApiTypes.BINARY,
+        },
+    )
     def get(
         self,
         request,
@@ -211,7 +252,7 @@ class PublicFileDownloadAPIView(APIView):
 
         return FileResponse(
             user_file.file,
-            content_type=(user_file.content_type or ('application/octet-stream')),
+            content_type=(user_file.content_type or 'application/octet-stream'),
             as_attachment=True,
             filename=(user_file.original_name),
         )

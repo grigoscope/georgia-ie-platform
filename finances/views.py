@@ -32,6 +32,8 @@ from finances.services import (
 class FinancialAccountViewSet(viewsets.ModelViewSet):
     """CRUD счетов пользователя."""
 
+    queryset = FinancialAccount.objects.all()
+
     serializer_class = FinancialAccountSerializer
 
     permission_classes = [
@@ -205,6 +207,8 @@ class FinancialAccountViewSet(viewsets.ModelViewSet):
 
 class CounterpartyViewSet(viewsets.ModelViewSet):
     """CRUD контрагентов пользователя."""
+
+    queryset = Counterparty.objects.all()
 
     serializer_class = CounterpartySerializer
 

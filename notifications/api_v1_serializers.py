@@ -35,7 +35,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     @staticmethod
-    def get_is_read(notification):
+    def get_is_read(
+        notification,
+    ) -> bool:
         return notification.read_at is not None
 
 

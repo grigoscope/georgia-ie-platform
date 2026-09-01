@@ -30,6 +30,8 @@ from notifications.models import (
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """Уведомления текущего пользователя."""
 
+    queryset = Notification.objects.all()
+
     serializer_class = NotificationSerializer
 
     permission_classes = [
@@ -162,6 +164,8 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 class NotificationSettingsAPIView(APIView):
     """Настройки уведомлений."""
+
+    serializer_class = NotificationSettingsSerializer
 
     permission_classes = [
         IsAuthenticated,

@@ -39,6 +39,8 @@ from incomes.views import IncomeEntryViewSet
 class IncomeEntryV1ViewSet(IncomeEntryViewSet):
     """Stage 4 API журнала доходов."""
 
+    queryset = IncomeEntry.objects.all()
+
     pagination_class = StandardPageNumberPagination
 
     @idempotent

@@ -2,6 +2,9 @@ import hmac
 
 from django.conf import settings
 from django.utils import timezone
+from drf_spectacular.utils import (
+    extend_schema,
+)
 from rest_framework import status
 from rest_framework.permissions import (
     AllowAny,
@@ -22,6 +25,8 @@ from telegram_integration.security import (
 )
 from telegram_integration.serializers import (
     TelegramInitDataSerializer,
+    TelegramWebhookResponseSerializer,
+    TelegramWebhookSerializer,
 )
 
 
@@ -40,6 +45,8 @@ def connection_data(connection):
 
 class TelegramLinkAPIView(APIView):
     """Привязка Telegram к аккаунту."""
+
+    serializer_class = TelegramInitDataSerializer
 
     permission_classes = [
         IsAuthenticated,
@@ -125,6 +132,8 @@ class TelegramLinkAPIView(APIView):
 class TelegramMiniAppAuthAPIView(APIView):
     """JWT-вход через Telegram Mini App."""
 
+    serializer_class = TelegramInitDataSerializer
+
     permission_classes = [
         AllowAny,
     ]
@@ -193,6 +202,12 @@ class TelegramWebhookAPIView(APIView):
 
     authentication_classes = []
 
+    @extend_schema(
+        tags=['Telegram'],
+        auth=[],
+        request=TelegramWebhookSerializer,
+        responses={200: (TelegramWebhookResponseSerializer)},
+    )
     def post(self, request):
         configured_secret = settings.TELEGRAM_WEBHOOK_SECRET
 

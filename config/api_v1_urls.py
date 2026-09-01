@@ -1,0 +1,59 @@
+from django.urls import include, path
+
+from config.views import HealthCheckAPIView
+
+urlpatterns = [
+    path(
+        'health/',
+        HealthCheckAPIView.as_view(),
+        name='health',
+    ),
+    path(
+        'auth/',
+        include('accounts.urls'),
+    ),
+    path(
+        '',
+        include('accounts.profile_urls'),
+    ),
+    path(
+        '',
+        include('finances.urls'),
+    ),
+    path(
+        '',
+        include('exchange_rates.urls'),
+    ),
+    path(
+        '',
+        include('incomes.api_v1_urls'),
+    ),
+    path(
+        'reports/',
+        include('incomes.api_v1_report_urls'),
+    ),
+    path(
+        '',
+        include('taxes.api_v1_urls'),
+    ),
+    path(
+        '',
+        include('invoices.api_v1_urls'),
+    ),
+    path(
+        '',
+        include('telegram_integration.urls'),
+    ),
+    path(
+        '',
+        include('notifications.api_v1_urls'),
+    ),
+    path(
+        '',
+        include('audit.api_v1_urls'),
+    ),
+    path(
+        '',
+        include('uploads.urls'),
+    ),
+]

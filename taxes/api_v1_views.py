@@ -35,6 +35,8 @@ from taxes.services import (
 class TaxPeriodViewSet(viewsets.ReadOnlyModelViewSet):
     """API налоговых периодов."""
 
+    queryset = TaxPeriod.objects.all()
+
     serializer_class = TaxPeriodSerializer
 
     permission_classes = [

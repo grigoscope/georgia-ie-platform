@@ -21,6 +21,8 @@ from exchange_rates.services import (
 class CurrencyListAPIView(APIView):
     """Список доступных валют."""
 
+    serializer_class = CurrencySerializer
+
     permission_classes = [
         IsAuthenticated,
     ]
@@ -44,6 +46,8 @@ class CurrencyListAPIView(APIView):
 
 class ExchangeRateAPIView(APIView):
     """Получить курс валюты."""
+
+    serializer_class = ExchangeRateSerializer
 
     permission_classes = [
         IsAuthenticated,
@@ -109,6 +113,8 @@ class ExchangeRateAPIView(APIView):
 
 class ConversionAPIView(APIView):
     """Конвертация валюты в GEL."""
+
+    serializer_class = ConversionSerializer
 
     permission_classes = [
         IsAuthenticated,
@@ -199,6 +205,8 @@ class ConversionAPIView(APIView):
 
 class CryptoEstimateAPIView(APIView):
     """Ручная оценка криптовалюты."""
+
+    serializer_class = CryptoEstimateSerializer
 
     permission_classes = [
         IsAuthenticated,

@@ -8,8 +8,8 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from config.views import (
-    HealthCheckAPIView,
+from config.schema_urls import (
+    urlpatterns as schema_urlpatterns,
 )
 
 urlpatterns = [
@@ -18,13 +18,10 @@ urlpatterns = [
         admin.site.urls,
     ),
     path(
-        'api/v1/health/',
-        HealthCheckAPIView.as_view(),
-        name='health',
-    ),
-    path(
         'api/v1/schema/',
-        SpectacularAPIView.as_view(),
+        SpectacularAPIView.as_view(
+            patterns=schema_urlpatterns,
+        ),
         name='schema',
     ),
     path(
@@ -38,6 +35,10 @@ urlpatterns = [
         name='redoc',
     ),
     path(
+        'api/v1/',
+        include('config.api_v1_urls'),
+    ),
+    path(
         'api/',
         include('incomes.urls'),
     ),
@@ -49,59 +50,11 @@ urlpatterns = [
         'api/',
         include('invoices.urls'),
     ),
-    path(
-        'api/v1/auth/',
-        include('accounts.urls'),
-    ),
-    path(
-        'api/v1/',
-        include('accounts.profile_urls'),
-    ),
-    path(
-        'api/v1/',
-        include('finances.urls'),
-    ),
-    path(
-        'api/v1/',
-        include('exchange_rates.urls'),
-    ),
-    path(
-        'api/v1/',
-        include('incomes.api_v1_urls'),
-    ),
-    path(
-        'api/v1/reports/',
-        include('incomes.api_v1_report_urls'),
-    ),
-    path(
-        'api/v1/',
-        include('taxes.api_v1_urls'),
-    ),
-    path(
-        'api/v1/',
-        include('invoices.api_v1_urls'),
-    ),
-    path(
-        'api/v1/',
-        include('telegram_integration.urls'),
-    ),
-    path(
-        'api/v1/',
-        include('notifications.api_v1_urls'),
-    ),
-    path(
-        'api/v1/',
-        include('audit.api_v1_urls'),
-    ),
-    path(
-        'api/v1/',
-        include('uploads.urls'),
-    ),
 ]
 
 
 if settings.DEBUG:
     urlpatterns += static(
         settings.MEDIA_URL,
-        document_root=(settings.MEDIA_ROOT),
+        document_root=settings.MEDIA_ROOT,
     )

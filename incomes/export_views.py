@@ -2,6 +2,11 @@ import csv
 from io import BytesIO
 
 from django.http import HttpResponse
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiTypes,
+    extend_schema,
+)
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from rest_framework.permissions import (
@@ -140,6 +145,27 @@ class IncomeCSVExportAPIView(
         IsAuthenticated,
     ]
 
+    @extend_schema(
+        tags=['Incomes'],
+        parameters=[
+            OpenApiParameter(
+                name='year',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+            ),
+            OpenApiParameter(
+                name='month',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+            ),
+        ],
+        responses={
+            (
+                200,
+                'text/csv',
+            ): OpenApiTypes.BINARY,
+        },
+    )
     def get(self, request):
         queryset, error = self.get_queryset(request)
 
@@ -181,6 +207,27 @@ class IncomeXLSXExportAPIView(
         IsAuthenticated,
     ]
 
+    @extend_schema(
+        tags=['Incomes'],
+        parameters=[
+            OpenApiParameter(
+                name='year',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+            ),
+            OpenApiParameter(
+                name='month',
+                type=OpenApiTypes.INT,
+                location=(OpenApiParameter.QUERY),
+            ),
+        ],
+        responses={
+            (
+                200,
+                ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+            ): OpenApiTypes.BINARY,
+        },
+    )
     def get(self, request):
         queryset, error = self.get_queryset(request)
 

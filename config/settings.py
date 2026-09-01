@@ -140,6 +140,14 @@ SPECTACULAR_SETTINGS = {
         'displayRequestDuration': True,
         'filter': True,
     },
+    'ENUM_NAME_OVERRIDES': {
+        'IncomeDeclarationCategoryEnum': [
+            'cash_register_18',
+            'physical_pos_19',
+            'cashless_20',
+            'other_21',
+        ],
+    },
     'TAGS': [
         {
             'name': 'Auth',

@@ -21,6 +21,8 @@ from accounts.profile_serializers import (
 class ProfileAPIView(APIView):
     """Просмотр и изменение профиля."""
 
+    serializer_class = EntrepreneurProfileSerializer
+
     permission_classes = [
         IsAuthenticated,
     ]
@@ -134,6 +136,8 @@ class ProfileFileAPIView(APIView):
     Базовый endpoint для подписи
     или логотипа.
     """
+
+    serializer_class = ProfileImageUploadSerializer
 
     permission_classes = [
         IsAuthenticated,

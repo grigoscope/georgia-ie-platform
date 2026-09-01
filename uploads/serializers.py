@@ -77,3 +77,13 @@ class DownloadLinkSerializer(serializers.Serializer):
         max_value=86400,
         required=False,
     )
+
+
+class DownloadLinkDataSerializer(serializers.Serializer):
+    url = serializers.URLField()
+
+    expires_at = serializers.DateTimeField()
+
+
+class DownloadLinkResponseSerializer(serializers.Serializer):
+    data = DownloadLinkDataSerializer()

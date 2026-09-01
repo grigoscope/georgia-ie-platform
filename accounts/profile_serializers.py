@@ -58,7 +58,7 @@ class EntrepreneurProfileSerializer(serializers.ModelSerializer):
     def get_telegram_connected(
         self,
         profile,
-    ):
+    ) -> bool:
         connection = getattr(
             profile.user,
             'telegram_connection',
@@ -70,7 +70,7 @@ class EntrepreneurProfileSerializer(serializers.ModelSerializer):
     def get_signature_url(
         self,
         profile,
-    ):
+    ) -> str | None:
         if not profile.signature_file:
             return None
 
@@ -86,7 +86,7 @@ class EntrepreneurProfileSerializer(serializers.ModelSerializer):
     def get_logo_url(
         self,
         profile,
-    ):
+    ) -> str | None:
         if not profile.logo_file:
             return None
 

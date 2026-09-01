@@ -1,6 +1,10 @@
 from django.http import FileResponse
 from django.urls import reverse
 from django.utils import timezone
+from drf_spectacular.utils import (
+    OpenApiTypes,
+    extend_schema,
+)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -186,6 +190,16 @@ class InvoiceSharePublicAPIView(APIView):
 
     authentication_classes = []
 
+    @extend_schema(
+        tags=['Invoices'],
+        auth=[],
+        responses={
+            (
+                200,
+                'application/pdf',
+            ): OpenApiTypes.BINARY,
+        },
+    )
     def get(
         self,
         request,
