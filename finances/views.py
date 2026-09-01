@@ -3,6 +3,10 @@ from django.core.exceptions import (
 )
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     status,
     viewsets,
@@ -13,6 +17,10 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 
+from config.openapi_parameters import (
+    ACCOUNT_FILTER_PARAMETERS,
+    COUNTERPARTY_FILTER_PARAMETERS,
+)
 from config.pagination import (
     StandardPageNumberPagination,
 )
@@ -29,6 +37,12 @@ from finances.services import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Accounts'],
+        parameters=(ACCOUNT_FILTER_PARAMETERS),
+    )
+)
 class FinancialAccountViewSet(viewsets.ModelViewSet):
     """CRUD счетов пользователя."""
 
@@ -205,6 +219,12 @@ class FinancialAccountViewSet(viewsets.ModelViewSet):
         return None
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Counterparties'],
+        parameters=(COUNTERPARTY_FILTER_PARAMETERS),
+    )
+)
 class CounterpartyViewSet(viewsets.ModelViewSet):
     """CRUD контрагентов пользователя."""
 

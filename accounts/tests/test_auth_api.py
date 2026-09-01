@@ -381,3 +381,47 @@ class AuthAPITests(APITestCase):
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
         )
+
+    def test_stale_refresh_cannot_logout_current_session(
+        self,
+    ):
+        stale_tokens = self._login()
+
+        self.user.token_version += 1
+
+        self.user.save(
+            update_fields=[
+                'token_version',
+            ]
+        )
+
+        current_tokens = self._login()
+
+        self._authenticate(current_tokens['access'])
+
+        response = self.client.post(
+            self.logout_url,
+            {
+                'refresh': (stale_tokens['refresh']),
+            },
+            format='json',
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.user.refresh_from_db()
+
+        self.assertEqual(
+            self.user.token_version,
+            1,
+        )
+
+        response = self.client.get(self.me_url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )

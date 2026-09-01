@@ -277,3 +277,46 @@ class FilesV1APITests(APITestCase):
         )
 
         self.assertFalse(UserFile.objects.filter(id=user_file.id).exists())
+
+    def test_stored_file_uses_generated_name(
+        self,
+    ):
+        user_file = self._upload()
+
+        stored_name = user_file.file.name
+
+        self.assertTrue(stored_name.startswith((f'user_files/{self.user.id}/')))
+
+        self.assertTrue(stored_name.endswith('.txt'))
+
+        self.assertNotIn(
+            'document.txt',
+            stored_name,
+        )
+
+        self.assertEqual(
+            user_file.original_name,
+            'document.txt',
+        )
+
+    def test_same_original_names_get_unique_storage_names(
+        self,
+    ):
+        first = self._upload()
+
+        second = self._upload()
+
+        self.assertEqual(
+            first.original_name,
+            'document.txt',
+        )
+
+        self.assertEqual(
+            second.original_name,
+            'document.txt',
+        )
+
+        self.assertNotEqual(
+            first.file.name,
+            second.file.name,
+        )

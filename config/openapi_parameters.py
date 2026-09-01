@@ -1,0 +1,346 @@
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiTypes,
+)
+
+ACCOUNT_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='type',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'bank_account',
+            'bank_card',
+            'cash',
+            'cash_register',
+            'physical_pos',
+            'payment_system',
+            'crypto_wallet',
+            'other',
+        ],
+    ),
+    OpenApiParameter(
+        name='currency',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='is_active',
+        type=OpenApiTypes.BOOL,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='use_in_invoices',
+        type=OpenApiTypes.BOOL,
+        location=OpenApiParameter.QUERY,
+    ),
+]
+
+
+COUNTERPARTY_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='type',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'individual',
+            'entrepreneur',
+            'company',
+        ],
+    ),
+    OpenApiParameter(
+        name='country',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='search',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='ordering',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'name',
+            '-name',
+            'created_at',
+            '-created_at',
+            'updated_at',
+            '-updated_at',
+        ],
+    ),
+]
+
+
+EXCHANGE_RATE_PARAMETERS = [
+    OpenApiParameter(
+        name='currency',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        required=True,
+    ),
+    OpenApiParameter(
+        name='date',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+]
+
+
+INCOME_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='date_from',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='date_to',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='year',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='month',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='account',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='counterparty',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='currency',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='declaration_category',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'cash_register_18',
+            'physical_pos_19',
+            'cashless_20',
+            'other_21',
+        ],
+    ),
+    OpenApiParameter(
+        name='invoice',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='search',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='ordering',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'received_at',
+            '-received_at',
+            'amount_gel',
+            '-amount_gel',
+            'original_amount',
+            '-original_amount',
+            'created_at',
+            '-created_at',
+        ],
+    ),
+]
+
+
+INVOICE_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='status',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'draft',
+            'pending',
+            'partially_paid',
+            'paid',
+            'cancelled',
+        ],
+    ),
+    OpenApiParameter(
+        name='date_from',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='date_to',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='counterparty',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='currency',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='overdue',
+        type=OpenApiTypes.BOOL,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='search',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='ordering',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'issue_date',
+            '-issue_date',
+            'due_date',
+            '-due_date',
+            'total_amount',
+            '-total_amount',
+            'created_at',
+            '-created_at',
+            'number',
+            '-number',
+        ],
+    ),
+]
+
+
+TAX_PERIOD_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='year',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='month',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='declaration_status',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='status',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='payment_status',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='is_overdue',
+        type=OpenApiTypes.BOOL,
+        location=OpenApiParameter.QUERY,
+    ),
+]
+
+
+NOTIFICATION_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='type',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='is_read',
+        type=OpenApiTypes.BOOL,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='delivery_status',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='search',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='ordering',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'created_at',
+            '-created_at',
+            'scheduled_for',
+            '-scheduled_for',
+        ],
+    ),
+]
+
+
+AUDIT_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        name='action',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='object_type',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='object_id',
+        type=OpenApiTypes.INT,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='request_id',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='date_from',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='date_to',
+        type=OpenApiTypes.DATE,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='search',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+    ),
+    OpenApiParameter(
+        name='ordering',
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        enum=[
+            'created_at',
+            '-created_at',
+            'action',
+            '-action',
+        ],
+    ),
+]

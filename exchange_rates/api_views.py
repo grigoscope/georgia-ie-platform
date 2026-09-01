@@ -1,9 +1,15 @@
 from django.core.exceptions import ObjectDoesNotExist
+from drf_spectacular.utils import (
+    extend_schema,
+)
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from config.openapi_parameters import (
+    EXCHANGE_RATE_PARAMETERS,
+)
 from exchange_rates.models import Currency
 from exchange_rates.serializers import (
     ConversionSerializer,
@@ -53,6 +59,10 @@ class ExchangeRateAPIView(APIView):
         IsAuthenticated,
     ]
 
+    @extend_schema(
+        tags=['Currencies'],
+        parameters=(EXCHANGE_RATE_PARAMETERS),
+    )
     def get(self, request):
         currency_code = request.query_params.get('currency', '').strip().upper()
 

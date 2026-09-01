@@ -144,6 +144,28 @@ class LogoutAPIView(APIView):
                 status=(status.HTTP_400_BAD_REQUEST),
             )
 
+        token_version = refresh.get('token_version')
+
+        try:
+            token_version = int(token_version)
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return Response(
+                {'detail': ('Refresh token недействителен.')},
+                status=(status.HTTP_400_BAD_REQUEST),
+            )
+
+        user = User.objects.select_for_update().get(pk=request.user.pk)
+
+        if token_version != user.token_version:
+            return Response(
+                {'detail': ('Refresh token устарел.')},
+                status=(status.HTTP_400_BAD_REQUEST),
+            )
+
         try:
             refresh.blacklist()
 
@@ -152,8 +174,6 @@ class LogoutAPIView(APIView):
                 {'detail': ('Refresh token уже отозван.')},
                 status=(status.HTTP_400_BAD_REQUEST),
             )
-
-        user = User.objects.select_for_update().get(pk=request.user.pk)
 
         user.token_version += 1
 

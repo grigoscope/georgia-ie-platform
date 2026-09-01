@@ -1,4 +1,8 @@
 from django.db.models import Q
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import generics
 from rest_framework.exceptions import (
     ValidationError,
@@ -12,11 +16,20 @@ from audit.api_v1_serializers import (
     AuditLogSerializer,
 )
 from audit.models import AuditLog
+from config.openapi_parameters import (
+    AUDIT_FILTER_PARAMETERS,
+)
 from config.pagination import (
     StandardPageNumberPagination,
 )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Audit'],
+        parameters=(AUDIT_FILTER_PARAMETERS),
+    )
+)
 class AuditLogListAPIView(generics.ListAPIView):
     """Журнал действий пользователя."""
 

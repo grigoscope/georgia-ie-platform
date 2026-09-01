@@ -1,3 +1,6 @@
+from pathlib import Path
+from uuid import uuid4
+
 from django.conf import settings
 from django.db import models
 
@@ -6,7 +9,16 @@ def user_file_path(
     instance,
     filename,
 ):
-    return f'user_files/{instance.user_id}/{filename}'
+    suffix = Path(filename).suffix.lower()
+
+    extension = suffix[1:]
+
+    if not extension.isalnum() or len(extension) > 10:
+        suffix = ''
+
+    stored_name = f'{uuid4().hex}{suffix}'
+
+    return f'user_files/{instance.user_id}/{stored_name}'
 
 
 class UserFile(models.Model):

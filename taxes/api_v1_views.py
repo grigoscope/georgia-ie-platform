@@ -3,6 +3,10 @@ from decimal import (
     Decimal,
 )
 
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     status,
     viewsets,
@@ -16,6 +20,9 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 
+from config.openapi_parameters import (
+    TAX_PERIOD_FILTER_PARAMETERS,
+)
 from taxes.api_v1_serializers import (
     MarkPaidSerializer,
     MarkSubmittedSerializer,
@@ -32,6 +39,12 @@ from taxes.services import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Taxes'],
+        parameters=(TAX_PERIOD_FILTER_PARAMETERS),
+    )
+)
 class TaxPeriodViewSet(viewsets.ReadOnlyModelViewSet):
     """API налоговых периодов."""
 

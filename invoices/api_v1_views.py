@@ -5,11 +5,18 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse
 from django.utils import timezone
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from config.openapi_parameters import (
+    INVOICE_FILTER_PARAMETERS,
+)
 from config.pagination import (
     StandardPageNumberPagination,
 )
@@ -31,6 +38,12 @@ from invoices.services import InvoiceService
 from invoices.views import InvoiceViewSet
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Invoices'],
+        parameters=(INVOICE_FILTER_PARAMETERS),
+    )
+)
 class InvoiceV1ViewSet(
     InvoiceDeliveryMixin,
     InvoiceViewSet,

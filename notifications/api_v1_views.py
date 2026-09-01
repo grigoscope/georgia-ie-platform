@@ -1,5 +1,9 @@
 from django.db.models import Q
 from django.utils import timezone
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import (
     status,
     viewsets,
@@ -14,6 +18,9 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from config.openapi_parameters import (
+    NOTIFICATION_FILTER_PARAMETERS,
+)
 from config.pagination import (
     StandardPageNumberPagination,
 )
@@ -27,6 +34,12 @@ from notifications.models import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Notifications'],
+        parameters=(NOTIFICATION_FILTER_PARAMETERS),
+    )
+)
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """Уведомления текущего пользователя."""
 

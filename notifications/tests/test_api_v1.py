@@ -344,3 +344,11 @@ class NotificationV1APITests(APITestCase):
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
         )
+
+    def test_notification_settings_route_matches_api_contract(
+        self,
+    ):
+        self.assertEqual(
+            self.settings_url,
+            ('/api/v1/notification-settings/'),
+        )

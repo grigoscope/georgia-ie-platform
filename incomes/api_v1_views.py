@@ -3,6 +3,10 @@ from datetime import datetime, time, timedelta
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -13,6 +17,9 @@ from config.business_time import (
     get_business_timezone,
     period_bounds,
     year_bounds,
+)
+from config.openapi_parameters import (
+    INCOME_FILTER_PARAMETERS,
 )
 from config.pagination import (
     StandardPageNumberPagination,
@@ -36,6 +43,12 @@ from incomes.services import (
 from incomes.views import IncomeEntryViewSet
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Incomes'],
+        parameters=(INCOME_FILTER_PARAMETERS),
+    )
+)
 class IncomeEntryV1ViewSet(IncomeEntryViewSet):
     """Stage 4 API журнала доходов."""
 
