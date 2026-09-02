@@ -26,6 +26,7 @@ import {
   getIncomesRequest,
   previewIncomeRequest,
   type IncomeEntry,
+  type IncomeFilters,
   type IncomePreview,
 } from '../api/incomes'
 
@@ -157,6 +158,77 @@ export function IncomesPage() {
   )
 
   const [
+    journalLoading,
+    setJournalLoading,
+  ] = useState(false)
+
+  const [
+    totalCount,
+    setTotalCount,
+  ] = useState(0)
+
+  const [
+    hasNextPage,
+    setHasNextPage,
+  ] = useState(false)
+
+  const [
+    hasPreviousPage,
+    setHasPreviousPage,
+  ] = useState(false)
+
+  const [
+    journalReload,
+    setJournalReload,
+  ] = useState(0)
+
+  const [
+    activeFilters,
+    setActiveFilters,
+  ] = useState<IncomeFilters>({
+    page: 1,
+    page_size: 20,
+    ordering: '-received_at',
+  })
+
+  const [
+    searchQuery,
+    setSearchQuery,
+  ] = useState('')
+
+  const [
+    dateFrom,
+    setDateFrom,
+  ] = useState('')
+
+  const [
+    dateTo,
+    setDateTo,
+  ] = useState('')
+
+  const [
+    filterAccount,
+    setFilterAccount,
+  ] = useState('')
+
+  const [
+    filterCurrency,
+    setFilterCurrency,
+  ] = useState('')
+
+  const [
+    filterCategory,
+    setFilterCategory,
+  ] = useState('')
+
+  const [
+    filterOrdering,
+    setFilterOrdering,
+  ] = useState(
+    '-received_at',
+  )
+
+  const [
     previewLoading,
     setPreviewLoading,
   ] = useState(false)
@@ -247,6 +319,57 @@ export function IncomesPage() {
     setManualSource,
   ] = useState('')
 
+  const [
+    showFilters, 
+    setShowFilters
+  ] = useState(false)
+
+  const activeFilterCount =
+    useMemo(() => {
+      let count = 0
+
+      if (searchQuery.trim()) {
+        count += 1
+      }
+
+      if (dateFrom) {
+        count += 1
+      }
+
+      if (dateTo) {
+        count += 1
+      }
+
+      if (filterAccount) {
+        count += 1
+      }
+
+      if (filterCurrency) {
+        count += 1
+      }
+
+      if (filterCategory) {
+        count += 1
+      }
+
+      if (
+        filterOrdering !==
+        '-received_at'
+      ) {
+        count += 1
+      }
+
+      return count
+    }, [
+      searchQuery,
+      dateFrom,
+      dateTo,
+      filterAccount,
+      filterCurrency,
+      filterCategory,
+      filterOrdering,
+    ])
+
   const selectedCurrency =
     useMemo(
       () =>
@@ -281,11 +404,9 @@ export function IncomesPage() {
     async function load() {
       try {
         const [
-          incomesResult,
           accountsResult,
           currenciesResult,
         ] = await Promise.all([
-          getIncomesRequest(),
           getAccountsRequest(),
           getCurrenciesRequest(),
         ])
@@ -293,10 +414,6 @@ export function IncomesPage() {
         if (cancelled) {
           return
         }
-
-        setIncomes(
-          incomesResult.results,
-        )
 
         setAccounts(
           accountsResult,
@@ -352,6 +469,62 @@ export function IncomesPage() {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadJournal() {
+      setJournalLoading(true)
+
+      try {
+        const result =
+          await getIncomesRequest(
+            activeFilters,
+          )
+
+        if (cancelled) {
+          return
+        }
+
+        setIncomes(
+          result.results,
+        )
+
+        setTotalCount(
+          result.count,
+        )
+
+        setHasNextPage(
+          Boolean(result.next),
+        )
+
+        setHasPreviousPage(
+          Boolean(result.previous),
+        )
+      } catch (requestError) {
+        if (!cancelled) {
+          setError(
+            getApiErrorMessage(
+              requestError,
+            ),
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setJournalLoading(false)
+        }
+      }
+    }
+
+    void loadJournal()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    activeFilters,
+    journalReload,
+  ])
 
   function invalidatePreview() {
     setPreview(null)
@@ -554,8 +727,7 @@ export function IncomesPage() {
     setError('')
 
     try {
-      const created =
-        await createIncomeRequest({
+      await createIncomeRequest({
           received_at:
             toTbilisiIso(
               receivedAt,
@@ -583,15 +755,14 @@ export function IncomesPage() {
           ...getRateFields(),
         })
 
-      setIncomes(
-        (current) => [
-          created,
-          ...current,
-        ],
+      setJournalReload(
+        (current) =>
+          current + 1,
       )
 
       resetForm()
       setShowForm(false)
+
     } catch (requestError) {
       setError(
         getApiErrorMessage(
@@ -623,12 +794,9 @@ export function IncomesPage() {
         income.id,
         )
 
-        setIncomes(
-        (current) =>
-            current.filter(
-            (item) =>
-                item.id !== income.id,
-            ),
+        setJournalReload(
+          (current) =>
+            current + 1,
         )
     } catch (requestError) {
         setError(
@@ -639,6 +807,74 @@ export function IncomesPage() {
     } finally {
         setDeletingId(null)
     }
+  }
+  
+  function applyJournalFilters(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+
+    setActiveFilters({
+      page: 1,
+      page_size: 20,
+      ordering:
+        filterOrdering as
+          IncomeFilters['ordering'],
+      ...(searchQuery.trim()
+        ? {
+            search:
+              searchQuery.trim(),
+          }
+        : {}),
+      ...(dateFrom
+        ? {
+            date_from: dateFrom,
+          }
+        : {}),
+      ...(dateTo
+        ? {
+            date_to: dateTo,
+          }
+        : {}),
+      ...(filterAccount
+        ? {
+            account:
+              Number(filterAccount),
+          }
+        : {}),
+      ...(filterCurrency
+        ? {
+            currency:
+              Number(filterCurrency),
+          }
+        : {}),
+      ...(filterCategory
+        ? {
+            declaration_category:
+              filterCategory,
+          }
+        : {}),
+    })
+
+    setShowFilters(false)
+  }
+
+  function clearJournalFilters() {
+    setSearchQuery('')
+    setDateFrom('')
+    setDateTo('')
+    setFilterAccount('')
+    setFilterCurrency('')
+    setFilterCategory('')
+    setFilterOrdering(
+      '-received_at',
+    )
+
+    setActiveFilters({
+      page: 1,
+      page_size: 20,
+      ordering: '-received_at',
+    })
   }
 
   if (loading) {
@@ -1322,12 +1558,229 @@ export function IncomesPage() {
 
             <p className="muted">
               Всего записей:{' '}
-              {incomes.length}
+              {totalCount}
             </p>
+          </div>
+
+          <div className="section-actions">
+            <button
+              type="button"
+              className="secondary icon-button"
+              onClick={() =>
+                setShowFilters(
+                  (current) => !current,
+                )
+              }
+              aria-label="Открыть фильтры"
+              title="Фильтры и поиск"
+            >
+              🔍
+              {activeFilterCount > 0 &&
+                ` ${activeFilterCount}`}
+            </button>
           </div>
         </div>
 
-        {incomes.length === 0 ? (
+        {showFilters && (
+          <form
+            className="income-filters"
+            onSubmit={
+              applyJournalFilters
+            }
+          >
+            <label className="filter-search">
+              Поиск
+
+              <input
+                value={searchQuery}
+                onChange={(event) =>
+                  setSearchQuery(
+                    event.target.value,
+                  )
+                }
+                placeholder="Описание, документ, комментарий..."
+              />
+            </label>
+
+            <label>
+              Дата от
+
+              <input
+                type="date"
+                lang="ru"
+                value={dateFrom}
+                onChange={(event) =>
+                  setDateFrom(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              Дата до
+
+              <input
+                type="date"
+                lang="ru"
+                value={dateTo}
+                onChange={(event) =>
+                  setDateTo(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+
+            <label>
+              Финансовый счёт
+
+              <select
+                value={filterAccount}
+                onChange={(event) =>
+                  setFilterAccount(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  Все счета
+                </option>
+
+                {accounts.map(
+                  (account) => (
+                    <option
+                      key={account.id}
+                      value={account.id}
+                    >
+                      {account.name}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+
+            <label>
+              Валюта
+
+              <select
+                value={filterCurrency}
+                onChange={(event) =>
+                  setFilterCurrency(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  Все валюты
+                </option>
+
+                {currencies.map(
+                  (currency) => (
+                    <option
+                      key={currency.id}
+                      value={currency.id}
+                    >
+                      {currency.code}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+
+            <label>
+              Графа
+
+              <select
+                value={filterCategory}
+                onChange={(event) =>
+                  setFilterCategory(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="">
+                  Все графы
+                </option>
+
+                {Object.entries(
+                  CATEGORY_LABELS,
+                ).map(
+                  ([
+                    value,
+                    label,
+                  ]) => (
+                    <option
+                      key={value}
+                      value={value}
+                    >
+                      {label}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+
+            <label>
+              Сортировка
+
+              <select
+                value={filterOrdering}
+                onChange={(event) =>
+                  setFilterOrdering(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="-received_at">
+                  Сначала новые
+                </option>
+
+                <option value="received_at">
+                  Сначала старые
+                </option>
+
+                <option value="-amount_gel">
+                  GEL: по убыванию
+                </option>
+
+                <option value="amount_gel">
+                  GEL: по возрастанию
+                </option>
+
+                <option value="-original_amount">
+                  Сумма: по убыванию
+                </option>
+
+                <option value="original_amount">
+                  Сумма: по возрастанию
+                </option>
+              </select>
+            </label>
+
+            <div className="filter-actions">
+              <button type="submit">
+                Применить
+              </button>
+
+              <button
+                type="button"
+                className="secondary"
+                onClick={
+                  clearJournalFilters
+                }
+              >
+                Сбросить
+              </button>
+            </div>
+          </form>
+        )}
+
+        {journalLoading ? (
+          <div className="empty-state">
+            Загружаем журнал...
+          </div>
+        ) : incomes.length === 0 ? (
           <div className="empty-state">
             <h3>
               Доходов пока нет
@@ -1439,6 +1892,69 @@ export function IncomesPage() {
                 )
               },
             )}
+          </div>
+        )}
+        {totalCount > 0 && (
+          <div className="journal-pagination">
+            <button
+              type="button"
+              className="secondary"
+              disabled={
+                !hasPreviousPage ||
+                journalLoading
+              }
+              onClick={() =>
+                setActiveFilters(
+                  (current) => ({
+                    ...current,
+                    page: Math.max(
+                      1,
+                      (current.page ?? 1) -
+                        1,
+                    ),
+                  }),
+                )
+              }
+            >
+              ← Назад
+            </button>
+
+            <span>
+              Страница{' '}
+              {activeFilters.page ?? 1}
+              {' из '}
+              {Math.max(
+                1,
+                Math.ceil(
+                  totalCount /
+                    (
+                      activeFilters.page_size ??
+                      20
+                    ),
+                ),
+              )}
+            </span>
+
+            <button
+              type="button"
+              className="secondary"
+              disabled={
+                !hasNextPage ||
+                journalLoading
+              }
+              onClick={() =>
+                setActiveFilters(
+                  (current) => ({
+                    ...current,
+                    page:
+                      (current.page ?? 1) +
+                      1,
+                  }),
+                )
+              }
+            >
+              Далее →
+            </button>
           </div>
         )}
       </section>

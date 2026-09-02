@@ -679,3 +679,91 @@ p {
   font-size: 12px;
   line-height: 1.4;
 }
+
+.income-filters {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 14px;
+  margin: 20px 0 24px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f6f8f7;
+}
+
+.income-filters label {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.filter-search {
+  grid-column: span 2;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.journal-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.journal-pagination span {
+  color: #68736f;
+  font-size: 14px;
+}
+
+@media (
+  max-width: 900px
+) {
+  .income-filters {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .filter-search {
+    grid-column: span 2;
+  }
+}
+
+@media (
+  max-width: 600px
+) {
+  .income-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-search {
+    grid-column: auto;
+  }
+
+  .filter-actions {
+    display: grid;
+  }
+
+  .journal-pagination {
+    justify-content:
+      space-between;
+  }
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-button {
+  min-width: 44px;
+  padding: 10px 14px;
+}

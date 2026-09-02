@@ -81,9 +81,52 @@ export type IncomeCreateInput = {
   ready_amount_gel?: string
 }
 
-export async function getIncomesRequest() {
+export type IncomeFilters = {
+  page?: number
+  page_size?: number
+  search?: string
+  date_from?: string
+  date_to?: string
+  account?: number
+  currency?: number
+  declaration_category?: string
+  ordering?:
+    | 'received_at'
+    | '-received_at'
+    | 'amount_gel'
+    | '-amount_gel'
+    | 'original_amount'
+    | '-original_amount'
+}
+
+export async function getIncomesRequest(
+  filters: IncomeFilters = {},
+) {
+  const params =
+    new URLSearchParams()
+
+  Object.entries(filters).forEach(
+    ([key, value]) => {
+      if (
+        value !== undefined &&
+        value !== null &&
+        value !== ''
+      ) {
+        params.set(
+          key,
+          String(value),
+        )
+      }
+    },
+  )
+
+  const query =
+    params.toString()
+
   return apiRequest<PaginatedIncomes>(
-    '/incomes/?ordering=-received_at',
+    query
+      ? `/incomes/?${query}`
+      : '/incomes/',
   )
 }
 
