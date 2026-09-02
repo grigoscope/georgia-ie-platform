@@ -45,7 +45,10 @@ export function SetupGate({
         if (!cancelled) {
           setReady(
             profile.profile_exists &&
-              accounts.length > 0,
+                accounts.some(
+                    (account) =>
+                    account.is_active,
+            )
           )
         }
       } catch {

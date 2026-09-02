@@ -441,6 +441,22 @@ class IncomeServiceTests(TestCase):
             )
         )
 
+        ExchangeRate.objects.create(
+            currency=self.usd,
+            rate_date=date(
+                2026,
+                9,
+                5,
+            ),
+            rate_value=Decimal(
+                '2.6250000000'
+            ),
+            rate_unit=1,
+            source='NBG',
+            is_manual=False,
+            created_by=self.user,
+        )
+
         self.service.update_income(
             income=income,
             received_at=september_date,
@@ -487,17 +503,36 @@ class IncomeServiceTests(TestCase):
 
         self.assertEqual(
             september.field_20,
-            Decimal('270.00'),
+            Decimal('262.50'),
         )
 
         self.assertEqual(
             september.field_17,
-            Decimal('270.00'),
+            Decimal('262.50'),
         )
 
         self.assertEqual(
             september.field_15,
-            Decimal('270.00'),
+            Decimal('262.50'),
+        )
+
+        self.assertEqual(
+            income.exchange_rate_date,
+            date(
+                2026,
+                9,
+                5,
+            ),
+        )
+
+        self.assertEqual(
+            income.exchange_rate_value,
+            Decimal('2.6250000000'),
+        )
+
+        self.assertEqual(
+            income.amount_gel,
+            Decimal('262.50'),
         )
 
     def test_delete_income_is_soft_delete(self):

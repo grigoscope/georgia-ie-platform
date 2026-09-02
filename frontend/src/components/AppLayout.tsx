@@ -43,9 +43,16 @@ export function AppLayout({
             Dashboard
           </NavLink>
 
-          <span className="nav-link disabled">
+          <NavLink
+            to="/incomes"
+            className={({ isActive }) =>
+              isActive
+                ? 'nav-link active'
+                : 'nav-link'
+            }
+          >
             Доходы
-          </span>
+          </NavLink>
 
           <span className="nav-link disabled">
             Инвойсы
@@ -58,11 +65,11 @@ export function AppLayout({
           <NavLink
             to="/settings"
             className={({ isActive }) =>
-                isActive
+              isActive
                 ? 'nav-link active'
                 : 'nav-link'
             }
-            >
+          >
             Настройки
           </NavLink>
         </nav>

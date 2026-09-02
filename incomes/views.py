@@ -78,35 +78,40 @@ class IncomeEntryViewSet(viewsets.ModelViewSet):
 
         data = serializer.validated_data.copy()
 
-        forbidden_fields = {
-            'original_amount',
-            'original_currency',
-        }
+        manual_rate_value = data.pop(
+            'manual_rate_value',
+            None,
+        )
 
-        changed_forbidden = forbidden_fields & set(data.keys())
+        manual_rate_unit = data.pop(
+            'manual_rate_unit',
+            1,
+        )
 
-        if changed_forbidden:
-            from rest_framework.exceptions import ValidationError
+        manual_source = data.pop(
+            'manual_source',
+            'manual',
+        )
 
-            raise ValidationError(
-                {'detail': 'Сумму и исходную валюту этим запросом менять нельзя.'}
-            )
+        ready_amount_gel = data.pop(
+            'ready_amount_gel',
+            None,
+        )
 
         tax_period_deadline = data.pop(
             'tax_period_deadline',
             None,
         )
 
-        data.pop('manual_rate_value', None)
-        data.pop('manual_rate_unit', None)
-        data.pop('manual_source', None)
-        data.pop('ready_amount_gel', None)
-
         service = IncomeService()
 
         updated_income = service.update_income(
             income=income,
             actor=self.request.user,
+            manual_rate_value=manual_rate_value,
+            manual_rate_unit=manual_rate_unit,
+            manual_source=manual_source,
+            ready_amount_gel=ready_amount_gel,
             tax_period_deadline=tax_period_deadline,
             **data,
         )

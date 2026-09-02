@@ -159,6 +159,8 @@ class IncomeService:
         description=None,
         received_at=None,
         financial_account=None,
+        original_amount=None,
+        original_currency=None,
         counterparty=UNSET,
         invoice=UNSET,
         declaration_category=None,
@@ -167,32 +169,66 @@ class IncomeService:
         payment_method=None,
         document_number=None,
         document_date=UNSET,
+        manual_rate_value=None,
+        manual_rate_unit=1,
+        manual_source='manual',
+        ready_amount_gel=None,
         tax_period_deadline=None,
         actor=None,
         request_id='',
         ip_address=None,
         user_agent='',
     ):
-        """Изменить доход."""
-
         if income.is_deleted:
-            raise ValidationError('Нельзя изменить удалённый доход.')
+            raise ValidationError(
+                'Нельзя изменить удалённый доход.'
+            )
 
         user = income.user
 
-        old_year, old_month = business_period(income.received_at)
-
-        old_values = self._audit_values(income)
-
-        new_received_at = received_at if received_at is not None else income.received_at
-
-        new_financial_account = (
-            financial_account if financial_account is not None else income.financial_account
+        old_year, old_month = business_period(
+            income.received_at
         )
 
-        new_counterparty = income.counterparty if counterparty is UNSET else counterparty
+        old_values = self._audit_values(
+            income
+        )
 
-        new_invoice = income.invoice if invoice is UNSET else invoice
+        new_received_at = (
+            received_at
+            if received_at is not None
+            else income.received_at
+        )
+
+        new_financial_account = (
+            financial_account
+            if financial_account is not None
+            else income.financial_account
+        )
+
+        new_original_amount = (
+            original_amount
+            if original_amount is not None
+            else income.original_amount
+        )
+
+        new_original_currency = (
+            original_currency
+            if original_currency is not None
+            else income.original_currency
+        )
+
+        new_counterparty = (
+            income.counterparty
+            if counterparty is UNSET
+            else counterparty
+        )
+
+        new_invoice = (
+            income.invoice
+            if invoice is UNSET
+            else invoice
+        )
 
         new_category = (
             declaration_category
@@ -202,41 +238,155 @@ class IncomeService:
 
         self._validate_owners(
             user=user,
-            financial_account=new_financial_account,
+            financial_account=(
+                new_financial_account
+            ),
             counterparty=new_counterparty,
             invoice=new_invoice,
         )
 
-        self._validate_category(new_category)
+        self._validate_category(
+            new_category
+        )
+
+        should_recalculate = any(
+            (
+                received_at is not None,
+                original_amount is not None,
+                original_currency is not None,
+                manual_rate_value is not None,
+                ready_amount_gel is not None,
+            )
+        )
+
+        if should_recalculate:
+            conversion = (
+                self.conversion_service.convert(
+                    amount=(
+                        new_original_amount
+                    ),
+                    currency_code=(
+                        new_original_currency.code
+                    ),
+                    user=user,
+                    manual_rate_value=(
+                        manual_rate_value
+                    ),
+                    manual_rate_unit=(
+                        manual_rate_unit
+                    ),
+                    manual_source=(
+                        manual_source
+                    ),
+                    ready_amount_gel=(
+                        ready_amount_gel
+                    ),
+                    rate_date=business_date(
+                        new_received_at
+                    ),
+                )
+            )
+
+            income.original_amount = (
+                conversion[
+                    'original_amount'
+                ]
+            )
+
+            income.original_currency = (
+                new_original_currency
+            )
+
+            income.exchange_rate_value = (
+                conversion[
+                    'rate_value'
+                ]
+            )
+
+            income.exchange_rate_unit = (
+                conversion[
+                    'rate_unit'
+                ]
+            )
+
+            income.exchange_rate_source = (
+                conversion[
+                    'source'
+                ]
+            )
+
+            income.exchange_rate_date = (
+                conversion[
+                    'rate_date'
+                ]
+            )
+
+            income.exchange_rate_time = (
+                conversion[
+                    'rate_time'
+                ]
+            )
+
+            income.amount_gel = (
+                conversion[
+                    'amount_gel'
+                ]
+            )
 
         if description is not None:
-            income.description = description
+            income.description = (
+                description
+            )
 
-        income.received_at = new_received_at
-        income.financial_account = new_financial_account
-        income.counterparty = new_counterparty
+        income.received_at = (
+            new_received_at
+        )
+
+        income.financial_account = (
+            new_financial_account
+        )
+
+        income.counterparty = (
+            new_counterparty
+        )
+
         income.invoice = new_invoice
-        income.declaration_category = new_category
+
+        income.declaration_category = (
+            new_category
+        )
 
         if comment is not None:
             income.comment = comment
 
         if additional_info is not None:
-            income.additional_info = additional_info
+            income.additional_info = (
+                additional_info
+            )
 
         if payment_method is not None:
-            income.payment_method = payment_method
+            income.payment_method = (
+                payment_method
+            )
 
         if document_number is not None:
-            income.document_number = document_number
+            income.document_number = (
+                document_number
+            )
 
         if document_date is not UNSET:
-            income.document_date = document_date
+            income.document_date = (
+                document_date
+            )
 
         income.full_clean()
         income.save()
 
-        new_year, new_month = business_period(income.received_at)
+        new_year, new_month = (
+            business_period(
+                income.received_at
+            )
+        )
 
         self._recalculate_after_change(
             user=user,
@@ -244,7 +394,9 @@ class IncomeService:
             old_month=old_month,
             new_year=new_year,
             new_month=new_month,
-            tax_period_deadline=tax_period_deadline,
+            tax_period_deadline=(
+                tax_period_deadline
+            ),
         )
 
         self.audit_service.log(
@@ -253,7 +405,11 @@ class IncomeService:
             action='update',
             obj=income,
             old_values=old_values,
-            new_values=self._audit_values(income),
+            new_values=(
+                self._audit_values(
+                    income
+                )
+            ),
             request_id=request_id,
             ip_address=ip_address,
             user_agent=user_agent,

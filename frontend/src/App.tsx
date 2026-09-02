@@ -21,6 +21,10 @@ import {
 } from './pages/DashboardPage'
 
 import {
+  IncomesPage,
+} from './pages/IncomesPage'
+
+import {
   LoginPage,
 } from './pages/LoginPage'
 
@@ -35,6 +39,10 @@ import {
 import {
   SettingsPage,
 } from './pages/SettingsPage'
+
+import {
+  IncomeEditPage,
+} from './pages/IncomeEditPage'
 
 function App() {
   return (
@@ -65,6 +73,32 @@ function App() {
             <SetupGate>
               <AppLayout>
                 <DashboardPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/incomes"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <IncomesPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/incomes/:id/edit"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <IncomeEditPage />
               </AppLayout>
             </SetupGate>
           </ProtectedRoute>

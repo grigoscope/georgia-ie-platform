@@ -5,14 +5,6 @@ import {
 } from 'react'
 
 import {
-  getAccountsRequest,
-  getCurrenciesRequest,
-  updateAccountRequest,
-  type Currency,
-  type FinancialAccount,
-} from '../api/finances'
-
-import {
   getApiErrorMessage,
 } from '../api/client'
 
@@ -21,28 +13,18 @@ import {
   updateProfileRequest,
 } from '../api/profile'
 
+import {
+  AccountsSection,
+} from '../components/AccountsSection'
+
 export function SettingsPage() {
-
-  const [
-    account,
-    setAccount,
-  ] = useState<FinancialAccount | null>(
-    null,
-  )
-
-  const [
-    currencies,
-    setCurrencies,
-  ] = useState<Currency[]>([])
-
   const [loading, setLoading] =
     useState(true)
 
-  const [savingProfile, setSavingProfile] =
-    useState(false)
-
-  const [savingAccount, setSavingAccount] =
-    useState(false)
+  const [
+    savingProfile,
+    setSavingProfile,
+  ] = useState(false)
 
   const [error, setError] =
     useState('')
@@ -90,133 +72,59 @@ export function SettingsPage() {
     setInvoicePrefix,
   ] = useState('INV-')
 
-  const [
-    accountName,
-    setAccountName,
-  ] = useState('')
-
-  const [
-    accountType,
-    setAccountType,
-  ] = useState('bank_account')
-
-  const [
-    currencyId,
-    setCurrencyId,
-  ] = useState('')
-
-  const [
-    providerName,
-    setProviderName,
-  ] = useState('')
-
-  const [iban, setIban] =
-    useState('')
-
-  const [
-    useInInvoices,
-    setUseInInvoices,
-  ] = useState(false)
-
   useEffect(() => {
     let cancelled = false
 
     async function load() {
       try {
-        const [
-          profileResult,
-          accountsResult,
-          currenciesResult,
-        ] = await Promise.all([
-          getProfileRequest(),
-          getAccountsRequest(),
-          getCurrenciesRequest(),
-        ])
+        const profile =
+          await getProfileRequest()
 
         if (cancelled) {
           return
         }
 
-        setCurrencies(currenciesResult)
-
         setBusinessName(
-          profileResult.business_name,
+          profile.business_name,
         )
 
         setTin(
-          profileResult.tin,
+          profile.tin,
         )
 
         setEntrepreneurStatus(
-          profileResult.entrepreneur_status ||
+          profile.entrepreneur_status ||
             'small_business',
         )
 
         setLegalAddress(
-          profileResult.legal_address,
+          profile.legal_address,
         )
 
         setEmail(
-          profileResult.email,
+          profile.email,
         )
 
         setPhone(
-          profileResult.phone,
+          profile.phone,
         )
 
         setTaxRate(
-          profileResult.tax_rate,
+          profile.tax_rate,
         )
 
         setAccountingStartDate(
-          profileResult.accounting_start_date ??
+          profile.accounting_start_date ??
             '',
         )
 
         setLanguage(
-          profileResult.language,
+          profile.language,
         )
 
         setInvoicePrefix(
-          profileResult.invoice_prefix,
+          profile.invoice_prefix,
         )
-
-        const currentAccount =
-          accountsResult.find(
-            (item) => item.is_default,
-          ) ??
-          accountsResult[0] ??
-          null
-
-        setAccount(currentAccount)
-
-        if (currentAccount) {
-          setAccountName(
-            currentAccount.name,
-          )
-
-          setAccountType(
-            currentAccount.type,
-          )
-
-          setCurrencyId(
-            String(
-              currentAccount.default_currency,
-            ),
-          )
-
-          setProviderName(
-            currentAccount.provider_name,
-          )
-
-          setIban(
-            currentAccount.iban,
-          )
-
-          setUseInInvoices(
-            currentAccount.use_in_invoices,
-          )
-        }
       } catch (requestError) {
         if (!cancelled) {
           setError(
@@ -249,25 +157,26 @@ export function SettingsPage() {
     setMessage('')
 
     try {
-        await updateProfileRequest({
-            business_name:
-                businessName.trim(),
-            entrepreneur_status:
-                entrepreneurStatus,
-            tin: tin.trim(),
-            legal_address:
-                legalAddress.trim(),
-            email: email.trim(),
-            phone: phone.trim(),
-            tax_rate: taxRate,
-            accounting_start_date:
-                accountingStartDate || null,
-            timezone: 'Asia/Tbilisi',
-            language,
-            invoice_prefix:
-                invoicePrefix.trim() ||
-                'INV-',
-            })
+      await updateProfileRequest({
+        business_name:
+          businessName.trim(),
+        entrepreneur_status:
+          entrepreneurStatus,
+        tin: tin.trim(),
+        legal_address:
+          legalAddress.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        tax_rate: taxRate,
+        accounting_start_date:
+          accountingStartDate ||
+          null,
+        timezone: 'Asia/Tbilisi',
+        language,
+        invoice_prefix:
+          invoicePrefix.trim() ||
+          'INV-',
+      })
 
       setMessage(
         'Профиль сохранён',
@@ -280,52 +189,6 @@ export function SettingsPage() {
       )
     } finally {
       setSavingProfile(false)
-    }
-  }
-
-  async function saveAccount(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault()
-
-    if (!account) {
-      return
-    }
-
-    setSavingAccount(true)
-    setError('')
-    setMessage('')
-
-    try {
-      const result =
-        await updateAccountRequest(
-          account.id,
-          {
-            name: accountName.trim(),
-            type: accountType,
-            default_currency:
-              Number(currencyId),
-            provider_name:
-              providerName.trim(),
-            iban: iban.trim(),
-            use_in_invoices:
-              useInInvoices,
-          },
-        )
-
-      setAccount(result)
-
-      setMessage(
-        'Финансовый счёт сохранён',
-      )
-    } catch (requestError) {
-      setError(
-        getApiErrorMessage(
-          requestError,
-        ),
-      )
-    } finally {
-      setSavingAccount(false)
     }
   }
 
@@ -351,9 +214,8 @@ export function SettingsPage() {
         </h1>
 
         <p className="muted">
-          Здесь можно изменить
-          данные предпринимателя
-          и финансового счёта.
+          Профиль предпринимателя
+          и финансовые счета.
         </p>
       </header>
 
@@ -492,7 +354,9 @@ export function SettingsPage() {
 
             <input
               type="date"
-              value={accountingStartDate}
+              value={
+                accountingStartDate
+              }
               onChange={(event) =>
                 setAccountingStartDate(
                   event.target.value,
@@ -551,186 +415,7 @@ export function SettingsPage() {
         </form>
       </section>
 
-      <section className="card settings-section">
-        <h2>
-          Финансовый счёт
-        </h2>
-
-        {account ? (
-          <form
-            className="form-grid"
-            onSubmit={saveAccount}
-          >
-            <label>
-              Название
-
-              <input
-                value={accountName}
-                onChange={(event) =>
-                  setAccountName(
-                    event.target.value,
-                  )
-                }
-                required
-              />
-            </label>
-
-            <label>
-              Тип счёта
-
-              <select
-                value={accountType}
-                onChange={(event) =>
-                  setAccountType(
-                    event.target.value,
-                  )
-                }
-              >
-                <option value="bank_account">
-                  Банковский счёт
-                </option>
-
-                <option value="bank_card">
-                  Банковская карта
-                </option>
-
-                <option value="cash">
-                  Наличные
-                </option>
-
-                <option value="cash_register">
-                  Кассовый аппарат
-                </option>
-
-                <option value="physical_pos">
-                  POS-терминал
-                </option>
-
-                <option value="payment_system">
-                  Платёжная система
-                </option>
-
-                <option value="crypto_wallet">
-                  Криптокошелёк
-                </option>
-
-                <option value="other">
-                  Другое
-                </option>
-              </select>
-            </label>
-
-            <label>
-              Валюта
-
-              <select
-                value={currencyId}
-                onChange={(event) =>
-                  setCurrencyId(
-                    event.target.value,
-                  )
-                }
-              >
-                <optgroup label="Обычные валюты">
-                  {currencies
-                    .filter(
-                      (currency) =>
-                        currency.kind ===
-                        'fiat',
-                    )
-                    .map(
-                      (currency) => (
-                        <option
-                          key={currency.id}
-                          value={currency.id}
-                        >
-                          {currency.code}
-                          {' — '}
-                          {currency.name}
-                        </option>
-                      ),
-                    )}
-                </optgroup>
-
-                <optgroup label="Криптовалюты">
-                  {currencies
-                    .filter(
-                      (currency) =>
-                        currency.kind ===
-                        'crypto',
-                    )
-                    .map(
-                      (currency) => (
-                        <option
-                          key={currency.id}
-                          value={currency.id}
-                        >
-                          {currency.code}
-                          {' — '}
-                          {currency.name}
-                        </option>
-                      ),
-                    )}
-                </optgroup>
-              </select>
-            </label>
-
-            <label>
-              Банк или провайдер
-
-              <input
-                value={providerName}
-                onChange={(event) =>
-                  setProviderName(
-                    event.target.value,
-                  )
-                }
-              />
-            </label>
-
-            <label className="wide">
-              IBAN
-
-              <input
-                value={iban}
-                onChange={(event) =>
-                  setIban(
-                    event.target.value,
-                  )
-                }
-              />
-            </label>
-
-            <label className="checkbox-row wide">
-              <input
-                type="checkbox"
-                checked={useInInvoices}
-                onChange={(event) =>
-                  setUseInInvoices(
-                    event.target.checked,
-                  )
-                }
-              />
-
-              Использовать в инвойсах
-            </label>
-
-            <button
-              className="form-submit"
-              type="submit"
-              disabled={savingAccount}
-            >
-              {savingAccount
-                ? 'Сохраняем...'
-                : 'Сохранить счёт'}
-            </button>
-          </form>
-        ) : (
-          <p className="muted">
-            Финансовый счёт не найден.
-          </p>
-        )}
-      </section>
+      <AccountsSection />
     </main>
   )
 }
