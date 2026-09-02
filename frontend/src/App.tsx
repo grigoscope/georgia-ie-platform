@@ -9,6 +9,14 @@ import {
 } from './auth/ProtectedRoute'
 
 import {
+  SetupGate,
+} from './auth/SetupGate'
+
+import {
+  AppLayout,
+} from './components/AppLayout'
+
+import {
   DashboardPage,
 } from './pages/DashboardPage'
 
@@ -17,8 +25,16 @@ import {
 } from './pages/LoginPage'
 
 import {
+  OnboardingPage,
+} from './pages/OnboardingPage'
+
+import {
   RegisterPage,
 } from './pages/RegisterPage'
+
+import {
+  SettingsPage,
+} from './pages/SettingsPage'
 
 function App() {
   return (
@@ -34,10 +50,36 @@ function App() {
       />
 
       <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <OnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <SetupGate>
+              <AppLayout>
+                <DashboardPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <SettingsPage />
+              </AppLayout>
+            </SetupGate>
           </ProtectedRoute>
         }
       />

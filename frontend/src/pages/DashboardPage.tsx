@@ -8,8 +8,6 @@ import {
   getApiErrorMessage,
 } from '../api/client'
 
-import { useAuth } from '../auth/AuthContext'
-
 type DashboardData = {
   current_month: {
     year: number
@@ -32,11 +30,6 @@ type DashboardData = {
 }
 
 export function DashboardPage() {
-  const {
-    user,
-    logout,
-  } = useAuth()
-
   const [data, setData] =
     useState<DashboardData | null>(
       null,
@@ -86,35 +79,28 @@ export function DashboardPage() {
   if (loading) {
     return (
       <main className="page">
-        Загрузка dashboard...
+        <div className="card">
+          Загружаем dashboard...
+        </div>
       </main>
     )
   }
 
   return (
     <main className="page">
-      <header className="topbar">
+      <header className="page-header">
         <div>
           <p className="eyebrow">
-            Georgia IE
+            Обзор
           </p>
 
           <h1>Dashboard</h1>
 
           <p className="muted">
-            {user?.email}
+            Основные показатели
+            вашего бизнеса
           </p>
         </div>
-
-        <button
-          className="secondary"
-          type="button"
-          onClick={() => {
-            void logout()
-          }}
-        >
-          Выйти
-        </button>
       </header>
 
       {error && (
@@ -132,8 +118,10 @@ export function DashboardPage() {
               </p>
 
               <strong className="money">
-                {data.current_month
-                  .total_gel}{' '}
+                {
+                  data.current_month
+                    .total_gel
+                }{' '}
                 GEL
               </strong>
 
@@ -152,8 +140,10 @@ export function DashboardPage() {
               </p>
 
               <strong className="money">
-                {data.current_year
-                  .total_gel}{' '}
+                {
+                  data.current_year
+                    .total_gel
+                }{' '}
                 GEL
               </strong>
 
@@ -168,15 +158,32 @@ export function DashboardPage() {
           </section>
 
           <section className="card">
-            <h2>
-              Последние доходы
-            </h2>
+            <div className="section-heading">
+              <div>
+                <h2>
+                  Последние доходы
+                </h2>
+
+                <p className="muted">
+                  Последние операции
+                  журнала
+                </p>
+              </div>
+            </div>
 
             {data.recent_incomes
               .length === 0 ? (
-              <p className="muted">
-                Доходов пока нет
-              </p>
+              <div className="empty-state">
+                <h3>
+                  Доходов пока нет
+                </h3>
+
+                <p className="muted">
+                  Следующим шагом
+                  подключим форму
+                  добавления дохода.
+                </p>
+              </div>
             ) : (
               <div className="income-list">
                 {data.recent_incomes.map(
@@ -185,11 +192,22 @@ export function DashboardPage() {
                       key={income.id}
                       className="income-row"
                     >
-                      <span>
-                        {
-                          income.description
-                        }
-                      </span>
+                      <div>
+                        <strong>
+                          {
+                            income.description
+                          }
+                        </strong>
+
+                        <p className="muted">
+                          {
+                            income.original_amount
+                          }{' '}
+                          {
+                            income.currency
+                          }
+                        </p>
+                      </div>
 
                       <strong>
                         {
