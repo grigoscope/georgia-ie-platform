@@ -1,4 +1,7 @@
-import { apiRequest } from './client'
+import {
+  apiDownloadRequest,
+  apiRequest,
+} from './client'
 
 export type IncomeEntry = {
   id: number
@@ -99,14 +102,25 @@ export type IncomeFilters = {
     | '-original_amount'
 }
 
-export async function getIncomesRequest(
-  filters: IncomeFilters = {},
+function buildIncomeQuery(
+  filters: IncomeFilters,
+  includePagination = true,
 ) {
   const params =
     new URLSearchParams()
 
   Object.entries(filters).forEach(
     ([key, value]) => {
+      if (
+        !includePagination &&
+        (
+          key === 'page' ||
+          key === 'page_size'
+        )
+      ) {
+        return
+      }
+
       if (
         value !== undefined &&
         value !== null &&
@@ -120,8 +134,14 @@ export async function getIncomesRequest(
     },
   )
 
+  return params.toString()
+}
+
+export async function getIncomesRequest(
+  filters: IncomeFilters = {},
+) {
   const query =
-    params.toString()
+    buildIncomeQuery(filters)
 
   return apiRequest<PaginatedIncomes>(
     query
@@ -208,4 +228,29 @@ export async function deleteIncomeRequest(
       method: 'DELETE',
     },
   )
+}
+
+export type IncomeExportFormat =
+  | 'csv'
+  | 'xlsx'
+
+export async function exportIncomesRequest(
+  format: IncomeExportFormat,
+  filters: IncomeFilters = {},
+) {
+  const query =
+    buildIncomeQuery(
+      filters,
+      false,
+    )
+
+  const path =
+    `/incomes/export.${format}` +
+    (
+      query
+        ? `?${query}`
+        : ''
+    )
+
+  return apiDownloadRequest(path)
 }

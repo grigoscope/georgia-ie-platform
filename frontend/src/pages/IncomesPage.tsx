@@ -25,9 +25,11 @@ import {
   deleteIncomeRequest,
   getIncomesRequest,
   previewIncomeRequest,
+  exportIncomesRequest,
   type IncomeEntry,
   type IncomeFilters,
   type IncomePreview,
+  type IncomeExportFormat,
 } from '../api/incomes'
 
 import {
@@ -161,6 +163,13 @@ export function IncomesPage() {
     journalLoading,
     setJournalLoading,
   ] = useState(false)
+
+  const [
+    exportingFormat,
+    setExportingFormat,
+  ] = useState<
+    IncomeExportFormat | null
+  >(null)
 
   const [
     totalCount,
@@ -877,6 +886,53 @@ export function IncomesPage() {
     })
   }
 
+  async function exportJournal(
+    format: IncomeExportFormat,
+  ) {
+    setExportingFormat(format)
+    setError('')
+
+    try {
+      const blob =
+        await exportIncomesRequest(
+          format,
+          activeFilters,
+        )
+
+      const url =
+        URL.createObjectURL(blob)
+
+      const link =
+        document.createElement('a')
+
+      link.href = url
+      link.download =
+        `incomes.${format}`
+
+      document.body.appendChild(
+        link,
+      )
+
+      link.click()
+      link.remove()
+
+      window.setTimeout(
+        () => {
+          URL.revokeObjectURL(url)
+        },
+        0,
+      )
+    } catch (requestError) {
+      setError(
+        getApiErrorMessage(
+          requestError,
+        ),
+      )
+    } finally {
+      setExportingFormat(null)
+    }
+  }
+
   if (loading) {
     return (
       <main className="page">
@@ -1565,6 +1621,42 @@ export function IncomesPage() {
           <div className="section-actions">
             <button
               type="button"
+              className="secondary export-button"
+              disabled={
+                totalCount === 0 ||
+                journalLoading ||
+                exportingFormat !== null
+              }
+              title="Скачать журнал в CSV"
+              onClick={() => {
+                void exportJournal('csv')
+              }}
+            >
+              {exportingFormat === 'csv'
+                ? '...'
+                : 'CSV'}
+            </button>
+
+            <button
+              type="button"
+              className="secondary export-button"
+              disabled={
+                totalCount === 0 ||
+                journalLoading ||
+                exportingFormat !== null
+              }
+              title="Скачать журнал в Excel"
+              onClick={() => {
+                void exportJournal('xlsx')
+              }}
+            >
+              {exportingFormat === 'xlsx'
+                ? '...'
+                : 'XLSX'}
+            </button>
+
+            <button
+              type="button"
               className="secondary icon-button"
               onClick={() =>
                 setShowFilters(
@@ -1575,6 +1667,7 @@ export function IncomesPage() {
               title="Фильтры и поиск"
             >
               🔍
+
               {activeFilterCount > 0 &&
                 ` ${activeFilterCount}`}
             </button>

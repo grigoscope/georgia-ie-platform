@@ -289,3 +289,38 @@ class IncomeCSVExportAPITests(APITestCase):
             '2026-09-01',
             september_text,
         )
+
+    def test_export_filters_by_search(self):
+        self._create_income(
+            description='Оплата за занятие',
+        )
+
+        self._create_income(
+            description='Разработка сайта',
+        )
+
+        response = self.client.get(
+            self.url,
+            {
+                'search': 'занятие',
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        text = response.content.decode(
+            'utf-8-sig'
+        )
+
+        self.assertIn(
+            'Оплата за занятие',
+            text,
+        )
+
+        self.assertNotIn(
+            'Разработка сайта',
+            text,
+        )

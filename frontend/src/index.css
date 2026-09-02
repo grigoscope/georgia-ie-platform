@@ -767,3 +767,19 @@ p {
   min-width: 44px;
   padding: 10px 14px;
 }
+
+.export-button {
+  min-width: 54px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (
+  max-width: 600px
+) {
+  .section-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

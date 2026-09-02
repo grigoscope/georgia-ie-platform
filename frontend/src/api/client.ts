@@ -196,6 +196,66 @@ export async function apiRequest<T>(
   return data as T
 }
 
+export async function apiDownloadRequest(
+  path: string,
+  options: RequestInit = {},
+  useAuth = true,
+  retry = true,
+): Promise<Blob> {
+  const headers = new Headers(
+    options.headers,
+  )
+
+  if (useAuth) {
+    const access = getAccessToken()
+
+    if (access) {
+      headers.set(
+        'Authorization',
+        `Bearer ${access}`,
+      )
+    }
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}${path}`,
+    {
+      ...options,
+      headers,
+    },
+  )
+
+  if (
+    response.status === 401 &&
+    useAuth &&
+    retry
+  ) {
+    const refreshed =
+      await refreshAccessToken()
+
+    if (refreshed) {
+      return apiDownloadRequest(
+        path,
+        options,
+        useAuth,
+        false,
+      )
+    }
+  }
+
+  if (!response.ok) {
+    const data =
+      await readResponse(response)
+
+    throw new ApiError(
+      response.status,
+      data,
+    )
+  }
+
+  return response.blob()
+}
+
 export function getApiErrorMessage(
   error: unknown,
 ) {
