@@ -56,6 +56,14 @@ import {
   InvoiceCreatePage,
 } from './pages/InvoiceCreatePage'
 
+import {
+  TaxesPage,
+} from './pages/TaxesPage'
+
+import {
+  TaxPeriodDetailPage,
+} from './pages/TaxPeriodDetailPage'
+
 function App() {
   return (
     <Routes>
@@ -150,6 +158,32 @@ function App() {
             <SetupGate>
               <AppLayout>
                 <InvoiceDetailPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/taxes"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <TaxesPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/taxes/:id"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <TaxPeriodDetailPage />
               </AppLayout>
             </SetupGate>
           </ProtectedRoute>
