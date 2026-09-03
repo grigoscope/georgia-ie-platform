@@ -44,6 +44,10 @@ import {
   IncomeEditPage,
 } from './pages/IncomeEditPage'
 
+import {
+  InvoicesPage,
+} from './pages/InvoicesPage'
+
 function App() {
   return (
     <Routes>
@@ -99,6 +103,19 @@ function App() {
             <SetupGate>
               <AppLayout>
                 <IncomeEditPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/invoices"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <InvoicesPage />
               </AppLayout>
             </SetupGate>
           </ProtectedRoute>

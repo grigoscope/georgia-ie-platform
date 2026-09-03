@@ -783,3 +783,123 @@ p {
     justify-content: flex-end;
   }
 }
+
+.invoices-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.invoice-message {
+  margin-bottom: 18px;
+}
+
+.invoice-filters {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 14px;
+  margin: 20px 0 24px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f6f8f7;
+}
+
+.invoice-filters label {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.invoice-table {
+  overflow-x: auto;
+}
+
+.invoice-table-header,
+.invoice-table-row {
+  min-width: 1050px;
+  display: grid;
+  grid-template-columns:
+    120px
+    120px
+    minmax(180px, 1.4fr)
+    140px
+    130px
+    170px
+    100px;
+  gap: 16px;
+  align-items: center;
+}
+
+.invoice-table-header {
+  padding: 12px 0;
+  color: #66736e;
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom:
+    1px solid #dfe5e2;
+}
+
+.invoice-table-row {
+  padding: 16px 0;
+  border-bottom:
+    1px solid #edf0ee;
+}
+
+.invoice-status {
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.invoice-status-draft {
+  background: #eef1ef;
+  color: #59645f;
+}
+
+.invoice-status-pending {
+  background: #fff3d9;
+  color: #80621c;
+}
+
+.invoice-status-partially_paid {
+  background: #e8f1fb;
+  color: #315d86;
+}
+
+.invoice-status-paid {
+  background: #e5f3eb;
+  color: #20623f;
+}
+
+.invoice-status-cancelled {
+  background: #fbeaea;
+  color: #a53b3b;
+}
+
+.invoice-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (
+  max-width: 760px
+) {
+  .invoices-header {
+    display: grid;
+  }
+
+  .invoices-header button {
+    width: 100%;
+  }
+
+  .invoice-filters {
+    grid-template-columns: 1fr;
+  }
+}

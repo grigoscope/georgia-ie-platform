@@ -33,6 +33,27 @@ export type FinancialAccount = {
   updated_at: string
 }
 
+export type Counterparty = {
+  id: number
+  name: string
+  type: string
+  country: string
+  tax_id: string
+  address: string
+  email: string
+  phone: string
+  comment: string
+  created_at: string
+  updated_at: string
+}
+
+export type PaginatedCounterparties = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Counterparty[]
+}
+
 export type FinancialAccountInput = {
   name: string
   type: string
@@ -98,5 +119,11 @@ export async function setDefaultAccountRequest(
       method: 'POST',
       body: JSON.stringify({}),
     },
+  )
+}
+
+export async function getCounterpartiesRequest() {
+  return apiRequest<PaginatedCounterparties>(
+    '/counterparties/?page_size=100',
   )
 }

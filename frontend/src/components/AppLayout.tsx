@@ -54,9 +54,16 @@ export function AppLayout({
             Доходы
           </NavLink>
 
-          <span className="nav-link disabled">
+          <NavLink
+            to="/invoices"
+            className={({ isActive }) =>
+              isActive
+                ? 'nav-link active'
+                : 'nav-link'
+            }
+          >
             Инвойсы
-          </span>
+          </NavLink>
 
           <span className="nav-link disabled">
             Налоги
