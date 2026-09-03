@@ -73,6 +73,20 @@ export type FinancialAccountInput = {
   is_active: boolean
 }
 
+export type CounterpartyInput = {
+  name: string
+  type:
+    | 'individual'
+    | 'entrepreneur'
+    | 'company'
+  country: string
+  tax_id: string
+  address: string
+  email: string
+  phone: string
+  comment: string
+}
+
 export async function getCurrenciesRequest() {
   return apiRequest<Currency[]>(
     '/currencies/',
@@ -125,5 +139,17 @@ export async function setDefaultAccountRequest(
 export async function getCounterpartiesRequest() {
   return apiRequest<PaginatedCounterparties>(
     '/counterparties/?page_size=100',
+  )
+}
+
+export async function createCounterpartyRequest(
+  data: CounterpartyInput,
+) {
+  return apiRequest<Counterparty>(
+    '/counterparties/',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
   )
 }

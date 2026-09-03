@@ -1,4 +1,5 @@
 import {
+  apiDownloadRequest,
   apiRequest,
 } from './client'
 
@@ -72,6 +73,46 @@ export type PaginatedInvoices = {
   results: Invoice[]
 }
 
+export type InvoicePaymentSummary = {
+  total_amount: string
+  paid_amount: string
+  remaining_amount: string
+  is_paid: boolean
+}
+
+export type InvoicePreview = {
+  data: {
+    invoice: Invoice
+    payment_summary:
+      InvoicePaymentSummary
+  }
+}
+
+export type InvoiceItemInput = {
+  description: string
+  quantity: string
+  unit: string
+  unit_price: string
+}
+
+export type InvoiceCreateInput = {
+  issue_date: string
+  due_date: string | null
+  service_period_start: string | null
+  service_period_end: string | null
+  currency: number
+  language: string
+  counterparty: number
+  financial_account: number
+  items: InvoiceItemInput[]
+  discount_amount: string
+  extra_charge_amount: string
+  tax_note: string
+  tax_reference_amount: string | null
+  payment_purpose: string
+  notes: string
+}
+
 export type InvoiceFilters = {
   page?: number
   page_size?: number
@@ -91,6 +132,32 @@ export type InvoiceFilters = {
     | '-total_amount'
     | 'number'
     | '-number'
+}
+
+export type InvoicePaymentInput = {
+  received_at: string
+  financial_account: number
+  amount: string
+  declaration_category?: string | null
+  payment_method?: string
+  manual_rate_value?: string | null
+  manual_rate_unit?: number
+  manual_source?: string
+  ready_amount_gel?: string | null
+  comment?: string
+}
+
+export type InvoicePaymentResult = {
+  data: {
+    invoice_id: number
+    invoice_status: string
+    income_id: number
+    payment_id: number
+    payment_amount: string
+    paid_amount: string
+    remaining_amount: string
+    is_paid: boolean
+  }
 }
 
 function buildInvoiceQuery(
@@ -145,6 +212,95 @@ export async function deleteInvoiceRequest(
     `/invoices/${invoiceId}/`,
     {
       method: 'DELETE',
+    },
+  )
+}
+
+export async function previewInvoiceRequest(
+  invoiceId: number,
+) {
+  return apiRequest<InvoicePreview>(
+    `/invoices/${invoiceId}/preview/`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    },
+  )
+}
+
+export async function generateInvoicePdfRequest(
+  invoiceId: number,
+) {
+  return apiRequest<Invoice>(
+    `/invoices/${invoiceId}/generate-pdf/`,
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key':
+          crypto.randomUUID(),
+      },
+      body: JSON.stringify({}),
+    },
+  )
+}
+
+export async function downloadInvoicePdfRequest(
+  invoiceId: number,
+) {
+  return apiDownloadRequest(
+    `/invoices/${invoiceId}/pdf/`,
+  )
+}
+
+export async function markInvoiceSentRequest(
+  invoiceId: number,
+) {
+  return apiRequest<Invoice>(
+    `/invoices/${invoiceId}/mark-sent/`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    },
+  )
+}
+
+export async function cancelInvoiceRequest(
+  invoiceId: number,
+) {
+  return apiRequest<Invoice>(
+    `/invoices/${invoiceId}/cancel/`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    },
+  )
+}
+
+export async function createInvoiceRequest(
+  data: InvoiceCreateInput,
+) {
+  return apiRequest<Invoice>(
+    '/invoices/',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+  )
+}
+
+export async function createInvoiceIncomeRequest(
+  invoiceId: number,
+  data: InvoicePaymentInput,
+) {
+  return apiRequest<InvoicePaymentResult>(
+    `/invoices/${invoiceId}/create-income/`,
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key':
+          crypto.randomUUID(),
+      },
+      body: JSON.stringify(data),
     },
   )
 }

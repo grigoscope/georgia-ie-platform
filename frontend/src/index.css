@@ -903,3 +903,290 @@ p {
     grid-template-columns: 1fr;
   }
 }
+
+.invoice-number-link {
+  color: #1f6f54;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.invoice-number-link:hover {
+  text-decoration: underline;
+}
+
+.secondary-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #e7ece9;
+  color: #18212f;
+  text-decoration: none;
+}
+
+.invoice-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.invoice-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.invoice-detail-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.invoice-detail-summary .card {
+  display: grid;
+  gap: 8px;
+}
+
+.invoice-big-money {
+  font-size: 28px;
+}
+
+.invoice-detail-card {
+  margin-bottom: 18px;
+}
+
+.invoice-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.invoice-detail-items {
+  overflow-x: auto;
+}
+
+.invoice-detail-item {
+  min-width: 700px;
+  display: grid;
+  grid-template-columns:
+    minmax(240px, 1fr)
+    130px
+    130px
+    130px;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom:
+    1px solid #edf0ee;
+}
+
+.invoice-detail-item-header {
+  color: #66736e;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.invoice-totals {
+  width: min(
+    420px,
+    100%
+  );
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  margin-left: auto;
+}
+
+.invoice-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.invoice-total-final {
+  padding-top: 12px;
+  border-top:
+    1px solid #dfe5e2;
+  font-size: 18px;
+}
+
+.invoice-detail-columns {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.invoice-payment-details {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.invoice-payment-details > div {
+  display: grid;
+  gap: 5px;
+}
+
+.invoice-delete-button {
+  background: #fbeaea;
+  color: #a53b3b;
+}
+
+@media (
+  max-width: 760px
+) {
+  .invoice-detail-header {
+    display: grid;
+  }
+
+  .invoice-detail-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-detail-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-payment-details {
+    grid-template-columns: 1fr;
+  }
+}
+
+.primary-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: #6fa594;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.primary-link-button:hover {
+  background: #5d9382;
+  color: white;
+  text-decoration: none;
+}
+
+.primary-link-button:active {
+  transform: translateY(1px);
+}
+
+.invoice-create-form {
+  display: grid;
+  gap: 24px;
+}
+
+.invoice-items-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.invoice-items {
+  display: grid;
+  gap: 14px;
+}
+
+.invoice-item-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e1e7e4;
+  border-radius: 12px;
+  background: #f8faf9;
+}
+
+.invoice-item-fields {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr 1fr;
+  gap: 14px;
+}
+
+@media (
+  max-width: 760px
+) {
+  .invoice-items-heading {
+    display: grid;
+  }
+
+  .invoice-item-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.counterparty-field {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.counterparty-add-button {
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+
+.quick-counterparty-card {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #dfe5e2;
+  border-radius: 12px;
+  background: #f7f9f8;
+}
+
+.quick-counterparty-header h3 {
+  margin: 0 0 4px;
+}
+
+@media (
+  max-width: 760px
+) {
+  .counterparty-field {
+    grid-template-columns: 1fr;
+  }
+
+  .counterparty-add-button {
+    width: 100%;
+  }
+}
+
+.invoice-payment-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #d9e4df;
+  border-radius: 12px;
+  background: #f5faf7;
+}

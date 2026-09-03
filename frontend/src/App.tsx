@@ -48,6 +48,14 @@ import {
   InvoicesPage,
 } from './pages/InvoicesPage'
 
+import {
+  InvoiceDetailPage,
+} from './pages/InvoiceDetailPage'
+
+import {
+  InvoiceCreatePage,
+} from './pages/InvoiceCreatePage'
+
 function App() {
   return (
     <Routes>
@@ -116,6 +124,32 @@ function App() {
             <SetupGate>
               <AppLayout>
                 <InvoicesPage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/invoices/new"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <InvoiceCreatePage />
+              </AppLayout>
+            </SetupGate>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/invoices/:id"
+        element={
+          <ProtectedRoute>
+            <SetupGate>
+              <AppLayout>
+                <InvoiceDetailPage />
               </AppLayout>
             </SetupGate>
           </ProtectedRoute>

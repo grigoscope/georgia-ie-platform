@@ -23,6 +23,10 @@ import {
   getApiErrorMessage,
 } from '../api/client'
 
+import {
+  Link,
+} from 'react-router-dom'
+
 const STATUS_LABELS: Record<
   string,
   string
@@ -478,13 +482,12 @@ export function InvoicesPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          disabled
-          title="Добавим следующим шагом"
+        <Link
+          to="/invoices/new"
+          className="primary-link-button"
         >
           + Новый инвойс
-        </button>
+        </Link>
       </header>
 
       {error && (
@@ -805,9 +808,12 @@ export function InvoicesPage() {
                     key={invoice.id}
                     className="invoice-table-row"
                   >
-                    <strong>
+                    <Link
+                      to={`/invoices/${invoice.id}`}
+                      className="invoice-number-link"
+                    >
                       {invoice.number}
-                    </strong>
+                    </Link>
 
                     <span>
                       {formatDate(
@@ -847,6 +853,14 @@ export function InvoicesPage() {
                     </span>
 
                     <div className="invoice-actions">
+
+                      <Link
+                        to={`/invoices/${invoice.id}`}
+                        className="income-edit-button"
+                      >
+                        Открыть
+                      </Link>
+
                       {invoice.status ===
                         'draft' && (
                         <button
