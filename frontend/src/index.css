@@ -1921,3 +1921,108 @@ p {
     max-width: 42%;
   }
 }
+
+.mini-income-create {
+  display: grid;
+  gap: 12px;
+}
+
+.mini-income-toggle {
+  width: 100%;
+}
+
+.mini-income-form {
+  display: grid;
+  gap: 14px;
+  padding: 15px;
+  border-radius: 13px;
+  background:
+    rgb(120 130 125 / 7%);
+}
+
+.mini-income-form h3 {
+  margin: 0 0 4px;
+}
+
+.mini-income-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mini-income-form input,
+.mini-income-form select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid
+    rgb(120 130 125 / 25%);
+  border-radius: 10px;
+  background:
+    var(
+      --tg-theme-bg-color,
+      white
+    );
+  color:
+    var(
+      --tg-theme-text-color,
+      #18212f
+    );
+}
+
+.mini-income-money-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 2fr)
+    minmax(95px, 1fr);
+  gap: 10px;
+}
+
+.mini-income-preview {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border-radius: 11px;
+  background: #e5f3eb;
+  color: #20623f;
+}
+
+.mini-income-preview strong {
+  font-size: 22px;
+}
+
+.mini-income-preview small {
+  opacity: 0.85;
+}
+
+.mini-income-warning {
+  margin-top: 4px;
+  color: #80621c;
+}
+
+@media (
+  max-width: 380px
+) {
+  .mini-income-money-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mini-income-form input,
+.mini-income-form select {
+  background: #ffffff;
+  color: #18212f;
+  -webkit-text-fill-color: #18212f;
+  color-scheme: light;
+}
+
+.mini-income-form select option {
+  background: #ffffff;
+  color: #18212f;
+}
+
+.mini-income-form input::placeholder {
+  color: #7a8581;
+  -webkit-text-fill-color: #7a8581;
+}

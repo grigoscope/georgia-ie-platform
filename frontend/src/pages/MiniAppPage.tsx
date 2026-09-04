@@ -38,6 +38,15 @@ import {
   type Currency,
 } from '../api/finances'
 
+import {
+  MiniIncomeForm,
+} from '../components/MiniIncomeForm'
+
+import {
+  getDashboardRequest,
+  type DashboardData,
+} from '../api/reports'
+
 type MiniAppState =
   | 'loading'
   | 'login'
@@ -213,6 +222,13 @@ export function MiniAppPage() {
     [],
   )
 
+  const [
+  dashboard,
+  setDashboard,
+] = useState<DashboardData | null>(
+  null,
+)
+
   const loadData =
     useCallback(
       async () => {
@@ -225,6 +241,7 @@ export function MiniAppPage() {
             invoicesResult,
             taxesResult,
             currenciesResult,
+            dashboardResult,
           ] = await Promise.all([
             getIncomesRequest({
               page: 1,
@@ -243,6 +260,8 @@ export function MiniAppPage() {
             getTaxPeriodsRequest(),
 
             getCurrenciesRequest(),
+
+            getDashboardRequest(),
           ])
 
           setIncomes(
@@ -259,6 +278,10 @@ export function MiniAppPage() {
 
           setCurrencies(
             currenciesResult,
+          )
+
+          setDashboard(
+            dashboardResult,
           )
         } catch (
           requestError
@@ -527,8 +550,31 @@ export function MiniAppPage() {
     )
   }
 
+  const nowInTbilisi =
+    new Date(
+      new Date().toLocaleString(
+        'en-US',
+        {
+          timeZone:
+            'Asia/Tbilisi',
+        },
+      ),
+    )
+
+  const currentYear =
+    nowInTbilisi.getFullYear()
+
+  const currentMonth =
+    nowInTbilisi.getMonth() + 1
+
   const currentTaxPeriod =
-    taxPeriods[0] ?? null
+    taxPeriods.find(
+      (period) =>
+        period.year ===
+          currentYear &&
+        period.month ===
+          currentMonth,
+    ) ?? null
 
   const unpaidInvoices =
     invoices.filter(
@@ -655,13 +701,14 @@ export function MiniAppPage() {
                   </span>
 
                   <strong>
-                    {currentTaxPeriod
+                    {dashboard
                       ? formatAmount(
-                          currentTaxPeriod
-                            .field_17,
+                          dashboard
+                            .current_month
+                            .total_gel,
                         )
                       : '—'}{' '}
-                    {currentTaxPeriod
+                    {dashboard
                       ? 'GEL'
                       : ''}
                   </strong>
@@ -674,14 +721,11 @@ export function MiniAppPage() {
 
                   <strong>
                     {currentTaxPeriod
-                      ? formatAmount(
+                      ? `${formatAmount(
                           currentTaxPeriod
                             .field_26,
-                        )
-                      : '—'}{' '}
-                    {currentTaxPeriod
-                      ? 'GEL'
-                      : ''}
+                        )} GEL`
+                      : 'Не рассчитан'}
                   </strong>
                 </div>
 
@@ -875,6 +919,10 @@ export function MiniAppPage() {
                   </h2>
                 </div>
               </div>
+
+              <MiniIncomeForm
+                onSaved={loadData}
+              />
 
               {incomes.length ===
               0 ? (
