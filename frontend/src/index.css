@@ -1505,3 +1505,419 @@ p {
 .tax-period-actions .income-edit-button:hover {
   background: #dfeee7;
 }
+
+.mini-app-page {
+  min-height: 100vh;
+  padding:
+    max(
+      16px,
+      env(safe-area-inset-top)
+    )
+    14px
+    max(
+      24px,
+      env(safe-area-inset-bottom)
+    );
+  background:
+    var(
+      --tg-theme-bg-color,
+      #f4f6f8
+    );
+  color:
+    var(
+      --tg-theme-text-color,
+      #18212f
+    );
+}
+
+.mini-app-page button,
+.mini-app-page input {
+  font: inherit;
+}
+
+.mini-app-header {
+  width: min(
+    620px,
+    100%
+  );
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 auto 14px;
+}
+
+.mini-app-header h1 {
+  margin-bottom: 0;
+  font-size: 25px;
+}
+
+.mini-refresh-button {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 21px;
+}
+
+.mini-message {
+  width: min(
+    620px,
+    100%
+  );
+  margin: 0 auto 14px;
+}
+
+.mini-nav {
+  position: sticky;
+  top: 8px;
+  z-index: 10;
+  width: min(
+    620px,
+    100%
+  );
+  display: grid;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+  gap: 5px;
+  margin: 0 auto 14px;
+  padding: 5px;
+  border-radius: 13px;
+  background:
+    var(
+      --tg-theme-secondary-bg-color,
+      white
+    );
+  box-shadow:
+    0 4px 18px
+    rgb(0 0 0 / 6%);
+}
+
+.mini-nav button {
+  min-width: 0;
+  padding: 9px 5px;
+  border-radius: 9px;
+  background: transparent;
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mini-nav button.active {
+  background:
+    var(
+      --tg-theme-button-color,
+      #1f6f54
+    );
+  color:
+    var(
+      --tg-theme-button-text-color,
+      white
+    );
+}
+
+.mini-section {
+  width: min(
+    620px,
+    100%
+  );
+  display: grid;
+  gap: 14px;
+  margin: 0 auto;
+}
+
+.mini-app-card {
+  width: min(
+    620px,
+    100%
+  );
+  display: grid;
+  gap: 16px;
+  margin: 0 auto 14px;
+  padding: 18px;
+  border-radius: 16px;
+  background:
+    var(
+      --tg-theme-secondary-bg-color,
+      white
+    );
+  box-shadow:
+    0 5px 20px
+    rgb(0 0 0 / 5%);
+}
+
+.mini-login-card {
+  margin-top: 30px;
+}
+
+.mini-summary-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 8px;
+}
+
+.mini-summary-card {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  min-height: 88px;
+  padding: 12px;
+  border-radius: 13px;
+  background:
+    var(
+      --tg-theme-secondary-bg-color,
+      white
+    );
+}
+
+.mini-summary-card span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 11px;
+}
+
+.mini-summary-card strong {
+  overflow: hidden;
+  font-size: 17px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.mini-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mini-section-heading h2 {
+  margin-bottom: 3px;
+  font-size: 19px;
+}
+
+.mini-section-heading p {
+  margin-bottom: 0;
+}
+
+.mini-text-button {
+  padding: 6px 8px;
+  background: transparent;
+  color:
+    var(
+      --tg-theme-link-color,
+      #1f6f54
+    );
+  font-size: 13px;
+}
+
+.mini-list {
+  display: grid;
+}
+
+.mini-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom:
+    1px solid
+    rgb(120 130 125 / 15%);
+}
+
+.mini-list-row:last-child {
+  border-bottom: 0;
+}
+
+.mini-list-row > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mini-list-row span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 12px;
+}
+
+.mini-money {
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.mini-list-right {
+  flex-shrink: 0;
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.mini-status {
+  width: fit-content;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #eef1ef;
+  color: #59645f;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.mini-status-pending {
+  background: #fff3d9;
+  color: #80621c;
+}
+
+.mini-status-partially_paid {
+  background: #e8f1fb;
+  color: #315d86;
+}
+
+.mini-status-paid {
+  background: #e5f3eb;
+  color: #20623f;
+}
+
+.mini-status-cancelled {
+  background: #fbeaea;
+  color: #a53b3b;
+}
+
+.mini-invoice-card,
+.mini-tax-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom:
+    1px solid
+    rgb(120 130 125 / 15%);
+}
+
+.mini-invoice-card:last-child,
+.mini-tax-card:last-child {
+  border-bottom: 0;
+}
+
+.mini-invoice-top,
+.mini-invoice-bottom,
+.mini-tax-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mini-invoice-top > div,
+.mini-tax-heading > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mini-invoice-top span,
+.mini-invoice-bottom span,
+.mini-tax-heading span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 12px;
+}
+
+.mini-tax-values {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr;
+  gap: 8px;
+}
+
+.mini-tax-values > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 10px;
+  background:
+    rgb(120 130 125 / 8%);
+}
+
+.mini-tax-values span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 11px;
+}
+
+.mini-tax-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 11px;
+}
+
+.mini-overdue {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #fbeaea;
+  color: #a53b3b !important;
+  font-size: 10px !important;
+  font-weight: 700;
+}
+
+.mini-empty {
+  padding: 18px 0;
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  text-align: center;
+}
+
+@media (
+  max-width: 420px
+) {
+  .mini-summary-grid {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .mini-summary-card:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .mini-list-row {
+    align-items: flex-start;
+  }
+
+  .mini-money {
+    max-width: 42%;
+  }
+}

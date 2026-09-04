@@ -64,6 +64,10 @@ import {
   TaxPeriodDetailPage,
 } from './pages/TaxPeriodDetailPage'
 
+import {
+  MiniAppPage,
+} from './pages/MiniAppPage'
+
 function App() {
   return (
     <Routes>
@@ -201,6 +205,11 @@ function App() {
             </SetupGate>
           </ProtectedRoute>
         }
+      />
+
+      <Route
+        path="/mini-app"
+        element={<MiniAppPage />}
       />
 
       <Route
