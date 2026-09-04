@@ -329,6 +329,29 @@ export function MiniAppPage() {
     loadData,
   ])
 
+  useEffect(() => {
+    if (state !== 'ready') {
+      return
+    }
+
+    const intervalId =
+      window.setInterval(
+        () => {
+          void loadData()
+        },
+        15000,
+      )
+
+    return () => {
+      window.clearInterval(
+        intervalId,
+      )
+    }
+  }, [
+    state,
+    loadData,
+  ])
+
   async function loginAndLink(
     event:
       FormEvent<HTMLFormElement>,

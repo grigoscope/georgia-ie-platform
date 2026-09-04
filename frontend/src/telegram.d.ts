@@ -1,11 +1,23 @@
 interface TelegramWebApp {
   initData: string
 
+  isActive: boolean
+
   ready(): void
 
   expand(): void
 
   close(): void
+
+  onEvent(
+    eventType: string,
+    eventHandler: () => void,
+  ): void
+
+  offEvent(
+    eventType: string,
+    eventHandler: () => void,
+  ): void
 
   colorScheme:
     | 'light'
