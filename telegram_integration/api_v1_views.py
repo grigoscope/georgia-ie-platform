@@ -1,4 +1,6 @@
 import hmac
+import logging
+import requests
 
 from django.conf import settings
 from django.utils import timezone
@@ -28,6 +30,12 @@ from telegram_integration.serializers import (
     TelegramWebhookResponseSerializer,
     TelegramWebhookSerializer,
 )
+from telegram_integration.bot import (
+    TelegramBotClient,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 def connection_data(connection):
@@ -229,6 +237,27 @@ class TelegramWebhookAPIView(APIView):
         update = request.data
 
         message = update.get('message') or update.get('edited_message') or {}
+
+        text = message.get('text', '')
+
+        chat_id = chat.get('id')
+
+        if (
+            chat_id is not None
+            and text.startswith('/start')
+        ):
+            try:
+                TelegramBotClient().send_start_message(
+                    chat_id=chat_id,
+                )
+            except (
+                requests.RequestException,
+                RuntimeError,
+            ) as error:
+                logger.warning(
+                    'Telegram sendMessage failed: %s',
+                    error,
+                )
 
         telegram_user = message.get('from') or {}
 

@@ -275,3 +275,8 @@ MAX_UPLOAD_SIZE = int(
         str(10 * 1024 * 1024),
     )
 )
+
+MINI_APP_URL = os.getenv(
+    'MINI_APP_URL',
+    'http://localhost:5173/mini-app',
+)
