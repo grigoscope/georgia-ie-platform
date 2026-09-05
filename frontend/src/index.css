@@ -1944,7 +1944,11 @@ p {
   margin: 0 0 4px;
 }
 
-.mini-income-form label {
+.mini-income-form label,
+.mini-payment-form label,
+.mini-invoice-create label,
+.mini-counterparty-create label,
+.mini-invoice-item-create label {
   display: grid;
   gap: 6px;
   font-size: 12px;
@@ -1952,23 +1956,45 @@ p {
 }
 
 .mini-income-form input,
-.mini-income-form select {
+.mini-income-form select,
+.mini-payment-form input,
+.mini-payment-form select,
+.mini-payment-form textarea,
+.mini-invoice-create input,
+.mini-invoice-create select {
   width: 100%;
   min-height: 42px;
   padding: 9px 11px;
   border: 1px solid
     rgb(120 130 125 / 25%);
   border-radius: 10px;
-  background:
-    var(
-      --tg-theme-bg-color,
-      white
-    );
-  color:
-    var(
-      --tg-theme-text-color,
-      #18212f
-    );
+  background: #ffffff;
+  color: #18212f;
+  -webkit-text-fill-color:
+    #18212f;
+  color-scheme: light;
+  font: inherit;
+}
+
+.mini-income-form select option,
+.mini-payment-form select option,
+.mini-invoice-create select option {
+  background: #ffffff;
+  color: #18212f;
+}
+
+.mini-income-form input::placeholder,
+.mini-payment-form input::placeholder,
+.mini-payment-form textarea::placeholder,
+.mini-invoice-create input::placeholder {
+  color: #7a8581;
+  -webkit-text-fill-color:
+    #7a8581;
+}
+
+.mini-payment-form textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
 .mini-income-money-row {
@@ -2009,20 +2035,243 @@ p {
   }
 }
 
-.mini-income-form input,
-.mini-income-form select {
-  background: #ffffff;
-  color: #18212f;
-  -webkit-text-fill-color: #18212f;
-  color-scheme: light;
+.mini-invoices-list {
+  display: grid;
+  gap: 10px;
 }
 
-.mini-income-form select option {
-  background: #ffffff;
-  color: #18212f;
+.mini-invoice-open {
+  width: 100%;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background:
+    rgb(120 130 125 / 8%);
+  color:
+    var(
+      --tg-theme-text-color,
+      #18212f
+    );
+  text-align: left;
 }
 
-.mini-income-form input::placeholder {
-  color: #7a8581;
-  -webkit-text-fill-color: #7a8581;
+.mini-invoice-open-top,
+.mini-invoice-open-bottom {
+  display: flex;
+  align-items: flex-start;
+  justify-content:
+    space-between;
+  gap: 12px;
+}
+
+.mini-invoice-open-top > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mini-invoice-open span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 12px;
+}
+
+.mini-invoice-open-bottom {
+  align-items: center;
+}
+
+.mini-invoice-detail {
+  gap: 20px;
+}
+
+.mini-invoice-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content:
+    space-between;
+  gap: 12px;
+}
+
+.mini-back-button {
+  width: fit-content;
+  padding: 7px 10px;
+  background: transparent;
+  color:
+    var(
+      --tg-theme-link-color,
+      #1f6f54
+    );
+}
+
+.mini-invoice-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 8px;
+}
+
+.mini-invoice-summary > div {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border-radius: 10px;
+  background:
+    rgb(120 130 125 / 8%);
+}
+
+.mini-invoice-summary span,
+.mini-invoice-info span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 11px;
+}
+
+.mini-invoice-summary strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
+.mini-invoice-info {
+  display: grid;
+  gap: 12px;
+}
+
+.mini-invoice-info > div {
+  display: grid;
+  gap: 4px;
+}
+
+.mini-invoice-items,
+.mini-payment-list {
+  display: grid;
+}
+
+.mini-invoice-item,
+.mini-payment-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content:
+    space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom:
+    1px solid
+    rgb(120 130 125 / 15%);
+}
+
+.mini-invoice-item:last-child,
+.mini-payment-row:last-child {
+  border-bottom: 0;
+}
+
+.mini-invoice-item > div,
+.mini-payment-row > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mini-invoice-item span,
+.mini-payment-row span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 11px;
+}
+
+.mini-payment-form {
+  display: grid;
+  gap: 14px;
+  padding: 15px;
+  border-radius: 12px;
+  background:
+    rgb(120 130 125 / 8%);
+}
+
+.mini-payment-actions {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr;
+  gap: 10px;
+}
+
+@media (
+  max-width: 390px
+) {
+  .mini-invoice-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .mini-payment-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mini-invoice-create {
+  gap: 20px;
+}
+
+.mini-invoice-create-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.mini-counterparty-create,
+.mini-invoice-item-create {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background:
+    rgb(120 130 125 / 8%);
+}
+
+.mini-invoice-items-create {
+  display: grid;
+  gap: 12px;
+}
+
+.mini-invoice-item-create-header {
+  display: flex;
+  align-items: center;
+  justify-content:
+    space-between;
+  gap: 10px;
+}
+
+.mini-remove-item {
+  padding: 5px 8px;
+  background: transparent;
+  color: #a53b3b;
+  font-size: 11px;
+}
+
+.mini-invoice-item-row {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr;
+  gap: 10px;
+}
+
+@media (
+  max-width: 380px
+) {
+  .mini-invoice-item-row {
+    grid-template-columns:
+      1fr;
+  }
 }

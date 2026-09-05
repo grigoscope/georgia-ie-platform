@@ -267,19 +267,47 @@ export function getApiErrorMessage(
     return 'Неизвестная ошибка'
   }
 
-  if (
-    typeof error.data === 'object' &&
-    error.data !== null
-  ) {
-    const data = error.data as Record<
-      string,
-      unknown
-    >
+  function extractMessages(
+    value: unknown,
+    field = '',
+  ): string[] {
+    if (typeof value === 'string') {
+      return [
+        field
+          ? `${field}: ${value}`
+          : value,
+      ]
+    }
 
-    const nestedError = data.error
+    if (Array.isArray(value)) {
+      return value.flatMap(
+        (item) =>
+          extractMessages(
+            item,
+            field,
+          ),
+      )
+    }
 
     if (
-      typeof nestedError === 'object' &&
+      typeof value !== 'object' ||
+      value === null
+    ) {
+      return []
+    }
+
+    const object =
+      value as Record<
+        string,
+        unknown
+      >
+
+    const nestedError =
+      object.error
+
+    if (
+      typeof nestedError ===
+        'object' &&
       nestedError !== null
     ) {
       const errorObject =
@@ -288,19 +316,80 @@ export function getApiErrorMessage(
           unknown
         >
 
+      const fields =
+        errorObject.fields
+
       if (
-        typeof errorObject.message ===
-        'string'
+        typeof fields ===
+          'object' &&
+        fields !== null
       ) {
-        return errorObject.message
+        const fieldMessages =
+          extractMessages(
+            fields,
+          )
+
+        if (
+          fieldMessages.length >
+          0
+        ) {
+          return fieldMessages
+        }
+      }
+
+      if (
+        typeof errorObject
+          .message === 'string'
+      ) {
+        return [
+          errorObject.message,
+        ]
       }
     }
 
     if (
-      typeof data.detail === 'string'
+      object.detail !==
+      undefined
     ) {
-      return data.detail
+      const detailMessages =
+        extractMessages(
+          object.detail,
+        )
+
+      if (
+        detailMessages.length >
+        0
+      ) {
+        return detailMessages
+      }
     }
+
+    return Object.entries(
+      object,
+    ).flatMap(
+      ([key, value]) => {
+        if (
+          key === 'code' ||
+          key === 'message'
+        ) {
+          return []
+        }
+
+        return extractMessages(
+          value,
+          key,
+        )
+      },
+    )
+  }
+
+  const messages =
+    extractMessages(
+      error.data,
+    )
+
+  if (messages.length > 0) {
+    return messages.join('\n')
   }
 
   return `Ошибка сервера: ${error.status}`

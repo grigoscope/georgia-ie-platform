@@ -47,6 +47,10 @@ import {
   type DashboardData,
 } from '../api/reports'
 
+import {
+  MiniInvoicesSection,
+} from '../components/MiniInvoicesSection'
+
 type MiniAppState =
   | 'loading'
   | 'login'
@@ -980,87 +984,11 @@ export function MiniAppPage() {
 
           {section ===
             'invoices' && (
-            <section className="mini-app-card">
-              <div className="mini-section-heading">
-                <div>
-                  <p className="eyebrow">
-                    Документы
-                  </p>
-
-                  <h2>
-                    Инвойсы
-                  </h2>
-                </div>
-              </div>
-
-              {invoices.length ===
-              0 ? (
-                <div className="mini-empty">
-                  Инвойсов пока нет
-                </div>
-              ) : (
-                <div className="mini-list">
-                  {invoices.map(
-                    (
-                      invoice,
-                    ) => (
-                      <div
-                        key={
-                          invoice.id
-                        }
-                        className="mini-invoice-card"
-                      >
-                        <div className="mini-invoice-top">
-                          <div>
-                            <strong>
-                              {
-                                invoice.number
-                              }
-                            </strong>
-
-                            <span>
-                              {getBuyerName(
-                                invoice,
-                              )}
-                            </span>
-                          </div>
-
-                          <span
-                            className={
-                              `mini-status ` +
-                              `mini-status-${invoice.status}`
-                            }
-                          >
-                            {INVOICE_STATUS_LABELS[
-                              invoice.status
-                            ] ??
-                              invoice.status}
-                          </span>
-                        </div>
-
-                        <div className="mini-invoice-bottom">
-                          <strong>
-                            {formatAmount(
-                              invoice.total_amount,
-                            )}{' '}
-                            {currencyCode(
-                              invoice.currency,
-                            )}
-                          </strong>
-
-                          <span>
-                            от{' '}
-                            {formatDate(
-                              invoice.issue_date,
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    ),
-                  )}
-                </div>
-              )}
-            </section>
+            <MiniInvoicesSection
+              invoices={invoices}
+              currencies={currencies}
+              onRefresh={loadData}
+            />
           )}
 
           {section ===
