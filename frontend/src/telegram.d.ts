@@ -9,6 +9,10 @@ interface TelegramWebApp {
 
   close(): void
 
+  openLink(
+    url: string,
+  ): void
+
   onEvent(
     eventType: string,
     eventHandler: () => void,

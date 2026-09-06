@@ -304,3 +304,26 @@ export async function createInvoiceIncomeRequest(
     },
   )
 }
+
+export type InvoiceShareLinkResult = {
+  data: {
+    url: string
+    expires_at: string
+  }
+}
+
+export async function createInvoiceShareLinkRequest(
+  invoiceId: number,
+  expiresInHours = 24,
+) {
+  return apiRequest<InvoiceShareLinkResult>(
+    `/invoices/${invoiceId}/create-share-link/`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        expires_in_hours:
+          expiresInHours,
+      }),
+    },
+  )
+}

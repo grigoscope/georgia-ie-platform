@@ -3,7 +3,11 @@ import {
 } from 'react'
 
 import {
+  cancelInvoiceRequest,
   createInvoiceIncomeRequest,
+  createInvoiceShareLinkRequest,
+  generateInvoicePdfRequest,
+  markInvoiceSentRequest,
   previewInvoiceRequest,
   type Invoice,
   type InvoicePaymentSummary,
@@ -201,6 +205,31 @@ export function MiniInvoicesSection({
     setCreating,
   ] = useState(false)
 
+  const [
+    actionLoading,
+    setActionLoading,
+  ] = useState('')
+
+  const [
+    shareUrl,
+    setShareUrl,
+  ] = useState('')
+
+  const [
+    shareExpiresAt,
+    setShareExpiresAt,
+  ] = useState('')
+
+  const [
+    shareLoading,
+    setShareLoading,
+  ] = useState(false)
+
+  const [
+    linkCopied,
+    setLinkCopied,
+  ] = useState(false)
+
   function currencyCode(
     currencyId: number,
   ) {
@@ -308,6 +337,11 @@ export function MiniInvoicesSection({
   async function openInvoice(
     invoiceId: number,
   ) {
+
+    setShareUrl('')
+    setShareExpiresAt('')
+    setLinkCopied(false)
+
     setShowPaymentForm(false)
 
     setPaymentComment('')
@@ -322,6 +356,10 @@ export function MiniInvoicesSection({
   }
 
   function closeInvoice() {
+    setShareUrl('')
+    setShareExpiresAt('')
+    setLinkCopied(false)
+
     setSelectedInvoice(null)
     setPaymentSummary(null)
     setShowPaymentForm(false)
@@ -439,6 +477,243 @@ export function MiniInvoicesSection({
       )
     } finally {
       setPaymentSaving(false)
+    }
+  }
+
+  async function generatePdf() {
+    if (!selectedInvoice) {
+      return
+    }
+
+    setActionLoading(
+      'generate-pdf',
+    )
+
+    setError('')
+
+    try {
+      await generateInvoicePdfRequest(
+        selectedInvoice.id,
+      )
+
+      await loadInvoice(
+        selectedInvoice.id,
+      )
+
+      await onRefresh()
+    } catch (
+      requestError
+    ) {
+      setError(
+        getApiErrorMessage(
+          requestError,
+        ),
+      )
+    } finally {
+      setActionLoading('')
+    }
+  }
+
+  async function markSent() {
+    if (!selectedInvoice) {
+      return
+    }
+
+    setActionLoading(
+      'mark-sent',
+    )
+
+    setError('')
+
+    try {
+      await markInvoiceSentRequest(
+        selectedInvoice.id,
+      )
+
+      await loadInvoice(
+        selectedInvoice.id,
+      )
+
+      await onRefresh()
+    } catch (
+      requestError
+    ) {
+      setError(
+        getApiErrorMessage(
+          requestError,
+        ),
+      )
+    } finally {
+      setActionLoading('')
+    }
+  }
+
+  async function cancelInvoice() {
+  if (!selectedInvoice) {
+    return
+  }
+
+  const confirmed =
+    window.confirm(
+      'Отменить этот инвойс?',
+    )
+
+  if (!confirmed) {
+    return
+  }
+
+  setActionLoading(
+    'cancel',
+  )
+
+  setError('')
+
+  try {
+    await cancelInvoiceRequest(
+      selectedInvoice.id,
+    )
+
+    setShowPaymentForm(
+      false,
+    )
+
+    await loadInvoice(
+      selectedInvoice.id,
+    )
+
+    await onRefresh()
+  } catch (
+    requestError
+  ) {
+    setError(
+      getApiErrorMessage(
+        requestError,
+      ),
+    )
+  } finally {
+    setActionLoading('')
+  }
+}
+
+function normalizeShareUrl(
+  value: string,
+) {
+  try {
+    const url =
+      new URL(value)
+
+    return (
+      window.location.origin +
+      url.pathname +
+      url.search
+    )
+  } catch {
+    if (
+      value.startsWith('/')
+    ) {
+      return (
+        window.location.origin +
+        value
+      )
+    }
+
+    return value
+  }
+}
+
+async function createShareLink() {
+  if (!selectedInvoice) {
+    return
+  }
+
+  if (
+    !selectedInvoice.pdf_file
+  ) {
+    setError(
+      'Сначала создайте PDF',
+    )
+
+    return
+  }
+
+  setShareLoading(true)
+  setLinkCopied(false)
+  setError('')
+
+  try {
+    const result =
+      await createInvoiceShareLinkRequest(
+        selectedInvoice.id,
+        24,
+      )
+
+    setShareUrl(
+      normalizeShareUrl(
+        result.data.url,
+      ),
+    )
+
+    setShareExpiresAt(
+      result.data.expires_at,
+    )
+  } catch (
+    requestError
+  ) {
+    setError(
+      getApiErrorMessage(
+        requestError,
+      ),
+    )
+  } finally {
+    setShareLoading(false)
+  }
+}
+
+function openShareLink() {
+  if (!shareUrl) {
+    return
+  }
+
+  const webApp =
+    window.Telegram?.WebApp
+
+  if (webApp) {
+    webApp.openLink(
+      shareUrl,
+    )
+
+    return
+  }
+
+  window.open(
+    shareUrl,
+    '_blank',
+    'noopener,noreferrer',
+  )
+}
+
+  async function copyShareLink() {
+    if (!shareUrl) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(
+        shareUrl,
+      )
+
+      setLinkCopied(true)
+
+      window.setTimeout(
+        () => {
+          setLinkCopied(false)
+        },
+        2000,
+      )
+    } catch {
+      setError(
+        'Не удалось скопировать ссылку',
+      )
     }
   }
 
@@ -615,6 +890,149 @@ export function MiniInvoicesSection({
             </strong>
           </div>
         </div>
+
+        <div className="mini-invoice-actions-card">
+          <div>
+            <h3>
+              Действия
+            </h3>
+
+            <p className="muted">
+              Работа с документом
+            </p>
+          </div>
+
+          <div className="mini-invoice-actions">
+            <button
+              type="button"
+              className="secondary"
+              disabled={
+                actionLoading !== ''
+              }
+              onClick={() => {
+                void generatePdf()
+              }}
+            >
+              {actionLoading ===
+              'generate-pdf'
+                ? 'Создаём PDF...'
+                : selectedInvoice
+                      .pdf_file
+                  ? 'Обновить PDF'
+                  : 'Создать PDF'}
+            </button>
+
+            {selectedInvoice
+              .pdf_file && (
+              <button
+                type="button"
+                className="secondary"
+                disabled={
+                  shareLoading ||
+                  actionLoading !== ''
+                }
+                onClick={() => {
+                  void createShareLink()
+                }}
+              >
+                {shareLoading
+                  ? 'Создаём ссылку...'
+                  : 'Получить ссылку'}
+              </button>
+            )}
+
+            {selectedInvoice.status ===
+              'draft' && (
+              <button
+                type="button"
+                disabled={
+                  actionLoading !== ''
+                }
+                onClick={() => {
+                  void markSent()
+                }}
+              >
+                {actionLoading ===
+                'mark-sent'
+                  ? 'Сохраняем...'
+                  : 'Отметить отправленным'}
+              </button>
+            )}
+
+            {selectedInvoice.status !==
+              'paid' &&
+              selectedInvoice.status !==
+                'cancelled' && (
+                <button
+                  type="button"
+                  className="mini-danger-button"
+                  disabled={
+                    actionLoading !== ''
+                  }
+                  onClick={() => {
+                    void cancelInvoice()
+                  }}
+                >
+                  {actionLoading ===
+                  'cancel'
+                    ? 'Отменяем...'
+                    : 'Отменить инвойс'}
+                </button>
+              )}
+          </div>
+        </div>
+
+        {shareUrl && (
+          <div className="mini-share-card">
+            <div>
+              <span>
+                Ссылка на PDF
+              </span>
+
+              <strong>
+                Действует 24 часа
+              </strong>
+            </div>
+
+            <input
+              type="text"
+              value={shareUrl}
+              readOnly
+            />
+
+            <div className="mini-share-actions">
+              <button
+                type="button"
+                onClick={
+                  openShareLink
+                }
+              >
+                Открыть PDF
+              </button>
+
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => {
+                  void copyShareLink()
+                }}
+              >
+                {linkCopied
+                  ? 'Скопировано'
+                  : 'Копировать'}
+              </button>
+            </div>
+
+            {shareExpiresAt && (
+              <small className="muted">
+                Ссылка истекает:{' '}
+                {formatDateTime(
+                  shareExpiresAt,
+                )}
+              </small>
+            )}
+          </div>
+        )}
 
         <div>
           <h3>
