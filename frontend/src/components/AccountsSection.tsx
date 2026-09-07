@@ -96,6 +96,21 @@ export function AccountsSection() {
     useState('')
 
   const [
+    cryptoNetwork,
+    setCryptoNetwork,
+  ] = useState('')
+
+  const [
+    walletAddress,
+    setWalletAddress,
+  ] = useState('')
+
+  const [
+    memoTag,
+    setMemoTag,
+  ] = useState('')
+
+  const [
     useInInvoices,
     setUseInInvoices,
   ] = useState(false)
@@ -132,6 +147,18 @@ export function AccountsSection() {
 
     setIban(
       account.iban,
+    )
+
+    setUseInInvoices(
+      account.use_in_invoices,
+    )
+
+    setWalletAddress(
+      account.wallet_address,
+    )
+
+    setMemoTag(
+      account.memo_tag,
     )
 
     setUseInInvoices(
@@ -255,6 +282,9 @@ export function AccountsSection() {
 
     setProviderName('')
     setIban('')
+    setCryptoNetwork('')
+    setWalletAddress('')
+    setMemoTag('')
     setUseInInvoices(false)
     setError('')
     setMessage('')
@@ -267,6 +297,70 @@ export function AccountsSection() {
     fillAccount(account)
     setError('')
     setMessage('')
+  }
+
+  function changeAccountType(
+    newType: string,
+  ) {
+    setAccountType(
+      newType,
+    )
+
+    setError('')
+
+    if (
+      newType ===
+      'crypto_wallet'
+    ) {
+      const cryptoCurrency =
+        currencies.find(
+          (currency) =>
+            currency.is_active &&
+            currency.kind ===
+              'crypto',
+        )
+
+      setCurrencyId(
+        cryptoCurrency
+          ? String(
+              cryptoCurrency.id,
+            )
+          : '',
+      )
+
+      setIban('')
+
+      return
+    }
+
+    const gel =
+      currencies.find(
+        (currency) =>
+          currency.is_active &&
+          currency.code ===
+            'GEL',
+      )
+
+    const fiat =
+      currencies.find(
+        (currency) =>
+          currency.is_active &&
+          currency.kind ===
+            'fiat',
+      )
+
+    const currency =
+      gel ?? fiat
+
+    setCurrencyId(
+      currency
+        ? String(currency.id)
+        : '',
+    )
+
+    setCryptoNetwork('')
+    setWalletAddress('')
+    setMemoTag('')
   }
 
   async function saveAccount(
@@ -283,6 +377,50 @@ export function AccountsSection() {
         throw new Error(
           'Выберите валюту',
         )
+      }
+
+      const selectedCurrency =
+        currencies.find(
+          (currency) =>
+            currency.id ===
+            Number(currencyId),
+        )
+
+      if (!selectedCurrency) {
+        throw new Error(
+          'Валюта не найдена',
+        )
+      }
+
+      const isCrypto =
+        accountType ===
+        'crypto_wallet'
+
+      if (isCrypto) {
+        if (
+          selectedCurrency.kind !==
+          'crypto'
+        ) {
+          throw new Error(
+            'Для криптокошелька выберите криптовалюту',
+          )
+        }
+
+        if (
+          !cryptoNetwork.trim()
+        ) {
+          throw new Error(
+            'Укажите сеть криптовалюты',
+          )
+        }
+
+        if (
+          !walletAddress.trim()
+        ) {
+          throw new Error(
+            'Укажите адрес кошелька',
+          )
+        }
       }
 
       if (selectedId === 'new') {
@@ -305,12 +443,30 @@ export function AccountsSection() {
             iban: iban.trim(),
             swift_bic: '',
             account_identifier: '',
-            crypto_asset: '',
-            crypto_network: '',
-            wallet_address: '',
-            memo_tag: '',
+            crypto_asset:
+              isCrypto
+                ? selectedCurrency.code
+                : '',
+
+            crypto_network:
+              isCrypto
+                ? cryptoNetwork.trim()
+                : '',
+
+            wallet_address:
+              isCrypto
+                ? walletAddress.trim()
+                : '',
+
+            memo_tag:
+              isCrypto
+                ? memoTag.trim()
+                : '',
+
             default_declaration_category:
-              '',
+              isCrypto
+                ? 'other_21'
+                : '',
             payment_instructions: '',
             use_in_invoices:
               useInInvoices,
@@ -354,13 +510,46 @@ export function AccountsSection() {
             {
               name:
                 accountName.trim(),
-              type: accountType,
+
+              type:
+                accountType,
+
               default_currency:
                 Number(currencyId),
+
               provider_name:
                 providerName.trim(),
+
               iban:
-                iban.trim(),
+                isCrypto
+                  ? ''
+                  : iban.trim(),
+
+              crypto_asset:
+                isCrypto
+                  ? selectedCurrency.code
+                  : '',
+
+              crypto_network:
+                isCrypto
+                  ? cryptoNetwork.trim()
+                  : '',
+
+              wallet_address:
+                isCrypto
+                  ? walletAddress.trim()
+                  : '',
+
+              memo_tag:
+                isCrypto
+                  ? memoTag.trim()
+                  : '',
+
+              default_declaration_category:
+                isCrypto
+                  ? 'other_21'
+                  : '',
+
               use_in_invoices:
                 useInInvoices,
             },
@@ -598,7 +787,7 @@ export function AccountsSection() {
             <select
               value={accountType}
               onChange={(event) =>
-                setAccountType(
+                changeAccountType(
                   event.target.value,
                 )
               }
@@ -649,47 +838,35 @@ export function AccountsSection() {
               }
               required
             >
-              <optgroup label="Обычные валюты">
-                {currencies
-                  .filter(
-                    (currency) =>
-                      currency.kind ===
-                      'fiat',
-                  )
-                  .map(
-                    (currency) => (
-                      <option
-                        key={currency.id}
-                        value={currency.id}
-                      >
-                        {currency.code}
-                        {' — '}
-                        {currency.name}
-                      </option>
+              {currencies
+                .filter(
+                  (currency) =>
+                    currency.is_active &&
+                    (
+                      accountType ===
+                      'crypto_wallet'
+                        ? currency.kind ===
+                          'crypto'
+                        : currency.kind ===
+                          'fiat'
                     ),
-                  )}
-              </optgroup>
-
-              <optgroup label="Криптовалюты">
-                {currencies
-                  .filter(
-                    (currency) =>
-                      currency.kind ===
-                      'crypto',
-                  )
-                  .map(
-                    (currency) => (
-                      <option
-                        key={currency.id}
-                        value={currency.id}
-                      >
-                        {currency.code}
-                        {' — '}
-                        {currency.name}
-                      </option>
-                    ),
-                  )}
-              </optgroup>
+                )
+                .map(
+                  (currency) => (
+                    <option
+                      key={
+                        currency.id
+                      }
+                      value={
+                        currency.id
+                      }
+                    >
+                      {currency.code}
+                      {' — '}
+                      {currency.name}
+                    </option>
+                  ),
+                )}
             </select>
           </label>
 
@@ -707,18 +884,73 @@ export function AccountsSection() {
             />
           </label>
 
-          <label>
-            IBAN
+          {accountType ===
+          'crypto_wallet' ? (
+            <>
+              <label>
+                Сеть
 
-            <input
-              value={iban}
-              onChange={(event) =>
-                setIban(
-                  event.target.value,
-                )
-              }
-            />
-          </label>
+                <input
+                  value={
+                    cryptoNetwork
+                  }
+                  onChange={(event) =>
+                    setCryptoNetwork(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Например: TRC20, ERC20, BEP20"
+                  required
+                />
+              </label>
+
+              <label>
+                Адрес кошелька
+
+                <input
+                  value={
+                    walletAddress
+                  }
+                  onChange={(event) =>
+                    setWalletAddress(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Адрес криптокошелька"
+                  required
+                />
+              </label>
+
+              <label>
+                Memo / Tag
+
+                <input
+                  value={
+                    memoTag
+                  }
+                  onChange={(event) =>
+                    setMemoTag(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Необязательно"
+                />
+              </label>
+            </>
+          ) : (
+            <label>
+              IBAN
+
+              <input
+                value={iban}
+                onChange={(event) =>
+                  setIban(
+                    event.target.value,
+                  )
+                }
+              />
+            </label>
+          )}
 
           <label className="checkbox-row">
             <input

@@ -2678,3 +2678,54 @@ p {
       1fr;
   }
 }
+
+.mini-crypto-account {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background:
+    rgb(120 130 125 / 8%);
+}
+
+.mini-crypto-account-header {
+  display: flex;
+  align-items: center;
+  justify-content:
+    space-between;
+  gap: 10px;
+}
+
+.mini-crypto-badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e8edf8;
+  color: #34517f;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.mini-crypto-details {
+  display: grid;
+  gap: 8px;
+}
+
+.mini-crypto-details > div {
+  display: grid;
+  gap: 3px;
+}
+
+.mini-crypto-details span {
+  color:
+    var(
+      --tg-theme-hint-color,
+      #66736e
+    );
+  font-size: 10px;
+}
+
+.mini-crypto-details strong {
+  overflow-wrap:
+    anywhere;
+  font-size: 11px;
+}

@@ -68,6 +68,7 @@ class IncomeService:
         additional_info='',
         vat_amount=Decimal('0.00'),
         comment='',
+        crypto_tx_hash='',
         attachment=None,
         manual_rate_value=None,
         manual_rate_unit=1,
@@ -101,6 +102,34 @@ class IncomeService:
             rate_date=business_date(received_at),
         )
 
+        is_crypto_wallet = (
+            financial_account.type
+            == 'crypto_wallet'
+        )
+
+        crypto_asset = ''
+        crypto_network = ''
+        crypto_wallet_address = ''
+
+        if is_crypto_wallet:
+            crypto_asset = (
+                financial_account
+                .crypto_asset
+                .strip()
+            )
+
+            crypto_network = (
+                financial_account
+                .crypto_network
+                .strip()
+            )
+
+            crypto_wallet_address = (
+                financial_account
+                .wallet_address
+                .strip()
+            )
+
         income = IncomeEntry(
             user=user,
             received_at=received_at,
@@ -124,6 +153,16 @@ class IncomeService:
             vat_amount=vat_amount,
             comment=comment,
             attachment=attachment,
+            crypto_asset=crypto_asset,
+            crypto_network=crypto_network,
+            crypto_wallet_address=(
+                crypto_wallet_address
+            ),
+            crypto_tx_hash=(
+                crypto_tx_hash.strip()
+                if is_crypto_wallet
+                else ''
+            ),
         )
 
         income.full_clean()
@@ -165,6 +204,7 @@ class IncomeService:
         invoice=UNSET,
         declaration_category=None,
         comment=None,
+        crypto_tx_hash=None,
         additional_info=None,
         payment_method=None,
         document_number=None,
@@ -234,6 +274,12 @@ class IncomeService:
             declaration_category
             if declaration_category is not None
             else income.declaration_category
+        )
+
+        new_crypto_tx_hash = (
+            crypto_tx_hash
+            if crypto_tx_hash is not None
+            else income.crypto_tx_hash
         )
 
         self._validate_owners(
@@ -378,6 +424,37 @@ class IncomeService:
             income.document_date = (
                 document_date
             )
+
+        if (
+            new_financial_account.type
+            == 'crypto_wallet'
+        ):
+            income.crypto_asset = (
+                new_financial_account
+                .crypto_asset
+                .strip()
+            )
+
+            income.crypto_network = (
+                new_financial_account
+                .crypto_network
+                .strip()
+            )
+
+            income.crypto_wallet_address = (
+                new_financial_account
+                .wallet_address
+                .strip()
+            )
+
+            income.crypto_tx_hash = (
+                new_crypto_tx_hash.strip()
+            )
+        else:
+            income.crypto_asset = ''
+            income.crypto_network = ''
+            income.crypto_wallet_address = ''
+            income.crypto_tx_hash = ''
 
         income.full_clean()
         income.save()
@@ -583,6 +660,10 @@ class IncomeService:
             'declaration_category': income.declaration_category,
             'vat_amount': income.vat_amount,
             'invoice': income.invoice,
+            'crypto_asset': income.crypto_asset,
+            'crypto_network': income.crypto_network,
+            'crypto_wallet_address': income.crypto_wallet_address,
+            'crypto_tx_hash': income.crypto_tx_hash,
             'comment': income.comment,
             'is_deleted': income.is_deleted,
             'deleted_at': income.deleted_at,

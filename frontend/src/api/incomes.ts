@@ -14,6 +14,10 @@ export type IncomeEntry = {
   document_number: string
   document_date: string | null
   invoice: number | null
+  crypto_asset: string
+  crypto_network: string
+  crypto_wallet_address: string
+  crypto_tx_hash: string
   original_amount: string
   original_currency: number
   exchange_rate_value: string
@@ -78,6 +82,7 @@ export type IncomeCreateInput = {
   declaration_category: string
   vat_amount: string
   comment: string
+  crypto_tx_hash?: string
   manual_rate_value?: string
   manual_rate_unit?: number
   manual_source?: string
@@ -192,6 +197,7 @@ export type IncomeUpdateInput = {
   original_currency?: number
   declaration_category?: string
   comment?: string
+  crypto_tx_hash?: string
   manual_rate_value?: string
   manual_rate_unit?: number
   manual_source?: string

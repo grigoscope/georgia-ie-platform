@@ -23,6 +23,30 @@ class IncomeEntry(models.Model):
         related_name='income_entries',
     )
 
+    crypto_asset = models.CharField(
+        verbose_name='Криптовалюта',
+        max_length=20,
+        blank=True,
+    )
+
+    crypto_network = models.CharField(
+        verbose_name='Сеть криптовалюты',
+        max_length=50,
+        blank=True,
+    )
+
+    crypto_wallet_address = models.CharField(
+        verbose_name='Адрес криптокошелька',
+        max_length=255,
+        blank=True,
+    )
+
+    crypto_tx_hash = models.CharField(
+        verbose_name='Hash криптотранзакции',
+        max_length=255,
+        blank=True,
+    )
+
     received_at = models.DateTimeField(
         verbose_name='Дата и время получения дохода',
     )
@@ -223,6 +247,76 @@ class IncomeEntry(models.Model):
 
         if self.invoice_id and self.invoice.user_id != self.user_id:
             raise ValidationError({'invoice': 'Инвойс принадлежит другому пользователю.'})
+
+        if self.financial_account_id:
+            is_crypto_wallet = (
+                self.financial_account.type
+                == 'crypto_wallet'
+            )
+
+            if is_crypto_wallet:
+                if (
+                    self.original_currency_id
+                    and self.original_currency.kind
+                    != 'crypto'
+                ):
+                    raise ValidationError(
+                        {
+                            'original_currency':
+                                'Для криптокошелька необходимо выбрать криптовалюту.'
+                        }
+                    )
+
+                if (
+                    self.declaration_category
+                    != 'other_21'
+                ):
+                    raise ValidationError(
+                        {
+                            'declaration_category':
+                                'Криптовалютный доход должен относиться к графе 21.'
+                        }
+                    )
+
+                if not self.crypto_tx_hash.strip():
+                    raise ValidationError(
+                        {
+                            'crypto_tx_hash':
+                                'Укажите hash криптотранзакции.'
+                        }
+                    )
+
+                account_asset = (
+                    self.financial_account
+                    .crypto_asset
+                    .strip()
+                    .upper()
+                )
+
+                if (
+                    account_asset
+                    and self.original_currency_id
+                    and account_asset
+                    != self.original_currency.code.upper()
+                ):
+                    raise ValidationError(
+                        {
+                            'original_currency':
+                                'Криптовалюта дохода не совпадает с валютой кошелька.'
+                        }
+                    )
+
+            elif (
+                self.original_currency_id
+                and self.original_currency.kind
+                == 'crypto'
+            ):
+                raise ValidationError(
+                    {
+                        'financial_account':
+                            'Для криптовалютного дохода выберите криптокошелёк.'
+                    }
+                )
 
         if (
             self.original_currency_id

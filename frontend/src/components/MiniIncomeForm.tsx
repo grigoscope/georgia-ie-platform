@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 
@@ -24,6 +25,11 @@ type Props = {
   onSaved: () => Promise<void>
 }
 
+type RateMode =
+  | 'automatic'
+  | 'manual'
+  | 'ready_gel'
+
 const CATEGORIES = [
   {
     value: 'cash_register_18',
@@ -39,7 +45,8 @@ const CATEGORIES = [
   },
   {
     value: 'other_21',
-    label: '21 — Прочие доходы',
+    label:
+      '21 — Прочие доходы и криптовалюта',
   },
 ]
 
@@ -48,7 +55,8 @@ function getTbilisiDateTime() {
     new Intl.DateTimeFormat(
       'en-CA',
       {
-        timeZone: 'Asia/Tbilisi',
+        timeZone:
+          'Asia/Tbilisi',
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -149,6 +157,38 @@ export function MiniIncomeForm({
   )
 
   const [
+    cryptoTxHash,
+    setCryptoTxHash,
+  ] = useState('')
+
+  const [
+    rateMode,
+    setRateMode,
+  ] = useState<RateMode>(
+    'automatic',
+  )
+
+  const [
+    manualRate,
+    setManualRate,
+  ] = useState('')
+
+  const [
+    manualRateUnit,
+    setManualRateUnit,
+  ] = useState('1')
+
+  const [
+    manualSource,
+    setManualSource,
+  ] = useState('')
+
+  const [
+    readyAmountGel,
+    setReadyAmountGel,
+  ] = useState('')
+
+  const [
     preview,
     setPreview,
   ] = useState<
@@ -171,11 +211,70 @@ export function MiniIncomeForm({
   ] = useState('')
 
   const activeAccounts =
-    accounts.filter(
-      (account) =>
-        account.is_active &&
-        account.type !==
-          'crypto',
+    useMemo(
+      () =>
+        accounts.filter(
+          (account) =>
+            account.is_active,
+        ),
+      [accounts],
+    )
+
+  const selectedAccount =
+    useMemo(
+      () =>
+        accounts.find(
+          (account) =>
+            account.id ===
+            Number(accountId),
+        ) ?? null,
+      [
+        accounts,
+        accountId,
+      ],
+    )
+
+  const selectedCurrency =
+    useMemo(
+      () =>
+        currencies.find(
+          (currency) =>
+            currency.id ===
+            Number(currencyId),
+        ) ?? null,
+      [
+        currencies,
+        currencyId,
+      ],
+    )
+
+  const isCryptoWallet =
+    selectedAccount?.type ===
+    'crypto_wallet'
+
+  const isCryptoCurrency =
+    selectedCurrency?.kind ===
+    'crypto'
+
+  const availableCurrencies =
+    currencies.filter(
+      (currency) => {
+        if (!currency.is_active) {
+          return false
+        }
+
+        if (isCryptoWallet) {
+          return (
+            currency.kind ===
+            'crypto'
+          )
+        }
+
+        return (
+          currency.kind !==
+          'crypto'
+        )
+      },
     )
 
   useEffect(() => {
@@ -210,9 +309,7 @@ export function MiniIncomeForm({
         const available =
           accountsResult.filter(
             (account) =>
-              account.is_active &&
-              account.type !==
-                'crypto',
+              account.is_active,
           )
 
         const preferred =
@@ -223,23 +320,8 @@ export function MiniIncomeForm({
           available[0]
 
         if (preferred) {
-          setAccountId(
-            String(
-              preferred.id,
-            ),
-          )
-
-          setCurrencyId(
-            String(
-              preferred
-                .default_currency,
-            ),
-          )
-
-          setCategory(
-            preferred
-              .default_declaration_category ||
-              'cashless_20',
+          applyAccount(
+            preferred,
           )
         }
       } catch (
@@ -263,15 +345,68 @@ export function MiniIncomeForm({
     accounts.length,
   ])
 
+  function clearRateFields() {
+    setManualRate('')
+    setManualRateUnit('1')
+    setManualSource('')
+    setReadyAmountGel('')
+  }
+
+  function applyAccount(
+    account:
+      FinancialAccount,
+  ) {
+    setAccountId(
+      String(account.id),
+    )
+
+    setCurrencyId(
+      String(
+        account.default_currency,
+      ),
+    )
+
+    setCryptoTxHash('')
+    clearRateFields()
+    setPreview(null)
+
+    if (
+      account.type ===
+      'crypto_wallet'
+    ) {
+      setCategory(
+        'other_21',
+      )
+
+      setPaymentMethod(
+        'crypto',
+      )
+
+      setRateMode(
+        'manual',
+      )
+
+      return
+    }
+
+    setCategory(
+      account
+        .default_declaration_category ||
+        'cashless_20',
+    )
+
+    setPaymentMethod(
+      'bank_transfer',
+    )
+
+    setRateMode(
+      'automatic',
+    )
+  }
+
   function changeAccount(
     newAccountId: string,
   ) {
-    setAccountId(
-      newAccountId,
-    )
-
-    setPreview(null)
-
     const account =
       accounts.find(
         (item) =>
@@ -282,25 +417,122 @@ export function MiniIncomeForm({
       )
 
     if (!account) {
+      setAccountId('')
+      setCurrencyId('')
+      setPreview(null)
+
       return
     }
 
+    applyAccount(account)
+  }
+
+  function changeCurrency(
+    newCurrencyId: string,
+  ) {
     setCurrencyId(
-      String(
-        account.default_currency,
-      ),
+      newCurrencyId,
     )
 
-    setCategory(
-      account
-        .default_declaration_category ||
-        'cashless_20',
+    setPreview(null)
+    clearRateFields()
+
+    const currency =
+      currencies.find(
+        (item) =>
+          item.id ===
+          Number(
+            newCurrencyId,
+          ),
+      )
+
+    if (!currency) {
+      return
+    }
+
+    if (
+      currency.kind ===
+      'crypto'
+    ) {
+      setRateMode(
+        'manual',
+      )
+
+      setCategory(
+        'other_21',
+      )
+
+      setPaymentMethod(
+        'crypto',
+      )
+
+      return
+    }
+
+    setRateMode(
+      'automatic',
     )
+  }
+
+  function changeRateMode(
+    newMode: RateMode,
+  ) {
+    setRateMode(
+      newMode,
+    )
+
+    clearRateFields()
+    setPreview(null)
+  }
+
+  function getRateFields() {
+    if (
+      !selectedCurrency ||
+      selectedCurrency.code ===
+        'GEL'
+    ) {
+      return {}
+    }
+
+    if (
+      rateMode ===
+      'ready_gel'
+    ) {
+      return {
+        ready_amount_gel:
+          readyAmountGel,
+      }
+    }
+
+    if (
+      rateMode ===
+      'manual'
+    ) {
+      return {
+        manual_rate_value:
+          manualRate,
+
+        manual_rate_unit:
+          isCryptoCurrency
+            ? 1
+            : Number(
+                manualRateUnit,
+              ),
+
+        manual_source:
+          manualSource.trim() ||
+          'manual',
+      }
+    }
+
+    return {}
   }
 
   function validate() {
     if (!description.trim()) {
-      return 'Введите описание дохода'
+      return (
+        'Введите описание дохода'
+      )
     }
 
     if (!accountId) {
@@ -315,11 +547,130 @@ export function MiniIncomeForm({
       !amount ||
       Number(amount) <= 0
     ) {
-      return 'Введите сумму больше нуля'
+      return (
+        'Введите сумму больше нуля'
+      )
     }
 
     if (!receivedAt) {
-      return 'Укажите дату дохода'
+      return (
+        'Укажите дату дохода'
+      )
+    }
+
+    if (
+      isCryptoWallet
+    ) {
+      if (
+        !isCryptoCurrency
+      ) {
+        return (
+          'Для криптокошелька выберите криптовалюту'
+        )
+      }
+
+      if (
+        category !==
+        'other_21'
+      ) {
+        return (
+          'Криптовалюта должна относиться к графе 21'
+        )
+      }
+
+      if (
+        !cryptoTxHash.trim()
+      ) {
+        return (
+          'Укажите hash криптотранзакции'
+        )
+      }
+
+      if (
+        rateMode ===
+        'automatic'
+      ) {
+        return (
+          'Для криптовалюты укажите курс или GEL-эквивалент'
+        )
+      }
+
+      if (
+        rateMode ===
+        'manual'
+      ) {
+        if (
+          !manualRate ||
+          Number(
+            manualRate,
+          ) <= 0
+        ) {
+          return (
+            'Введите курс криптовалюты'
+          )
+        }
+
+        if (
+          Number(
+            manualRateUnit,
+          ) <= 0
+        ) {
+          return (
+            'Количество единиц должно быть больше нуля'
+          )
+        }
+
+        if (
+          !manualSource.trim()
+        ) {
+          return (
+            'Укажите источник оценки криптовалюты'
+          )
+        }
+      }
+
+      if (
+        rateMode ===
+          'ready_gel' &&
+        (
+          !readyAmountGel ||
+          Number(
+            readyAmountGel,
+          ) <= 0
+        )
+      ) {
+        return (
+          'Укажите GEL-эквивалент'
+        )
+      }
+    }
+
+    if (
+      !isCryptoWallet &&
+      isCryptoCurrency
+    ) {
+      return (
+        'Для криптовалюты выберите криптокошелёк'
+      )
+    }
+
+    if (
+      !isCryptoCurrency &&
+      selectedCurrency?.code !==
+        'GEL' &&
+      rateMode ===
+        'manual'
+    ) {
+      if (
+        !manualRate ||
+        Number(
+          manualRate,
+        ) <= 0
+      ) {
+        return (
+          'Введите ручной курс'
+        )
+      }
     }
 
     return ''
@@ -359,6 +710,8 @@ export function MiniIncomeForm({
 
             declaration_category:
               category,
+
+            ...getRateFields(),
           },
         )
 
@@ -434,16 +787,40 @@ export function MiniIncomeForm({
           vat_amount: '0.00',
 
           comment: '',
+
+          ...(isCryptoWallet
+            ? {
+                crypto_tx_hash:
+                  cryptoTxHash.trim(),
+              }
+            : {}),
+
+          ...getRateFields(),
         },
       )
 
       setDescription('')
       setAmount('')
+      setCryptoTxHash('')
+      clearRateFields()
       setPreview(null)
 
       setReceivedAt(
         getTbilisiDateTime(),
       )
+
+      const preferred =
+        activeAccounts.find(
+          (account) =>
+            account.is_default,
+        ) ??
+        activeAccounts[0]
+
+      if (preferred) {
+        applyAccount(
+          preferred,
+        )
+      }
 
       setOpen(false)
 
@@ -488,8 +865,8 @@ export function MiniIncomeForm({
             </h3>
 
             <p className="muted">
-              Добавление прямо
-              из Telegram
+              Обычный или
+              криптовалютный доход
             </p>
           </div>
 
@@ -510,7 +887,9 @@ export function MiniIncomeForm({
 
                 <input
                   type="text"
-                  value={description}
+                  value={
+                    description
+                  }
                   placeholder="Например: Оплата за разработку"
                   onChange={(
                     event,
@@ -532,7 +911,9 @@ export function MiniIncomeForm({
 
                 <input
                   type="datetime-local"
-                  value={receivedAt}
+                  value={
+                    receivedAt
+                  }
                   onChange={(
                     event,
                   ) => {
@@ -552,7 +933,9 @@ export function MiniIncomeForm({
                 Счёт
 
                 <select
-                  value={accountId}
+                  value={
+                    accountId
+                  }
                   onChange={(
                     event,
                   ) =>
@@ -576,7 +959,14 @@ export function MiniIncomeForm({
                           account.id
                         }
                       >
-                        {account.name}
+                        {
+                          account.name
+                        }
+                        {' — '}
+                        {
+                          account
+                            .default_currency_code
+                        }
                       </option>
                     ),
                   )}
@@ -585,9 +975,56 @@ export function MiniIncomeForm({
 
               {activeAccounts.length ===
                 0 && (
-                <div className="tax-detail-alert tax-detail-alert-warning">
+                <div className="mini-tax-alert mini-tax-alert-warning">
                   Нет активных
-                  обычных счетов.
+                  финансовых
+                  счетов.
+                </div>
+              )}
+
+              {isCryptoWallet &&
+                selectedAccount && (
+                <div className="mini-crypto-account">
+                  <div className="mini-crypto-account-header">
+                    <strong>
+                      Криптокошелёк
+                    </strong>
+
+                    <span className="mini-crypto-badge">
+                      {
+                        selectedAccount
+                          .crypto_asset ||
+                        selectedAccount
+                          .default_currency_code
+                      }
+                    </span>
+                  </div>
+
+                  <div className="mini-crypto-details">
+                    <div>
+                      <span>
+                        Сеть
+                      </span>
+
+                      <strong>
+                        {selectedAccount
+                          .crypto_network ||
+                          '—'}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Адрес
+                      </span>
+
+                      <strong>
+                        {selectedAccount
+                          .wallet_address ||
+                          '—'}
+                      </strong>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -597,9 +1034,11 @@ export function MiniIncomeForm({
 
                   <input
                     type="number"
-                    min="0.01"
-                    step="0.01"
-                    value={amount}
+                    min="0"
+                    step="any"
+                    value={
+                      amount
+                    }
                     onChange={(
                       event,
                     ) => {
@@ -612,7 +1051,7 @@ export function MiniIncomeForm({
                         null,
                       )
                     }}
-                    placeholder="0.00"
+                    placeholder="0"
                   />
                 </label>
 
@@ -620,11 +1059,58 @@ export function MiniIncomeForm({
                   Валюта
 
                   <select
-                    value={currencyId}
+                    value={
+                      currencyId
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      changeCurrency(
+                        event.target
+                          .value,
+                      )
+                    }
+                  >
+                    <option value="">
+                      —
+                    </option>
+
+                    {availableCurrencies.map(
+                      (
+                        currency,
+                      ) => (
+                        <option
+                          key={
+                            currency.id
+                          }
+                          value={
+                            currency.id
+                          }
+                        >
+                          {
+                            currency.code
+                          }
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </label>
+              </div>
+
+              {isCryptoWallet && (
+                <label>
+                  Hash транзакции
+
+                  <input
+                    type="text"
+                    value={
+                      cryptoTxHash
+                    }
+                    placeholder="0x... или transaction hash"
                     onChange={(
                       event,
                     ) => {
-                      setCurrencyId(
+                      setCryptoTxHash(
                         event.target
                           .value,
                       )
@@ -633,46 +1119,240 @@ export function MiniIncomeForm({
                         null,
                       )
                     }}
-                  >
-                    <option value="">
-                      —
-                    </option>
+                  />
 
-                    {currencies
-                      .filter(
-                        (currency) =>
-                          currency
-                            .is_active &&
-                          currency.kind !==
-                            'crypto',
-                      )
-                      .map(
-                        (
-                          currency,
-                        ) => (
-                          <option
-                            key={
-                              currency.id
-                            }
-                            value={
-                              currency.id
-                            }
-                          >
-                            {
-                              currency.code
-                            }
-                          </option>
-                        ),
-                      )}
-                  </select>
+                  <small className="field-hint">
+                    Идентификатор
+                    операции в
+                    блокчейне
+                  </small>
                 </label>
-              </div>
+              )}
+
+              {selectedCurrency &&
+                selectedCurrency.code !==
+                  'GEL' && (
+                  <label>
+                    Способ оценки
+
+                    <select
+                      value={
+                        rateMode
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        changeRateMode(
+                          event.target
+                            .value as
+                            RateMode,
+                        )
+                      }
+                    >
+                      {!isCryptoCurrency && (
+                        <option value="automatic">
+                          Автоматически
+                          по NBG
+                        </option>
+                      )}
+
+                      <option value="manual">
+                        Ввести курс
+                        вручную
+                      </option>
+
+                      {isCryptoCurrency && (
+                        <option value="ready_gel">
+                          Указать
+                          готовый GEL
+                        </option>
+                      )}
+                    </select>
+                  </label>
+                )}
+
+              {selectedCurrency &&
+                selectedCurrency.code !==
+                  'GEL' &&
+                rateMode ===
+                  'manual' && (
+                  <>
+                    {isCryptoCurrency ? (
+                      <label>
+                        Курс 1{' '}
+                        {
+                          selectedCurrency.code
+                        }{' '}
+                        к GEL
+
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={
+                            manualRate
+                          }
+                          onChange={(
+                            event,
+                          ) => {
+                            setManualRate(
+                              event.target
+                                .value,
+                            )
+
+                            setPreview(
+                              null,
+                            )
+                          }}
+                          placeholder="Например: 2.70"
+                        />
+
+                        <small className="field-hint">
+                          Сколько GEL стоит
+                          1{' '}
+                          {
+                            selectedCurrency.code
+                          }
+                        </small>
+                      </label>
+                    ) : (
+                      <div className="mini-income-money-row">
+                        <label>
+                          Единиц валюты
+
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={
+                              manualRateUnit
+                            }
+                            onChange={(
+                              event,
+                            ) => {
+                              setManualRateUnit(
+                                event.target
+                                  .value,
+                              )
+
+                              setPreview(
+                                null,
+                              )
+                            }}
+                          />
+
+                          <small className="field-hint">
+                            Например 1 USD
+                            или 100 RUB
+                          </small>
+                        </label>
+
+                        <label>
+                          Курс к GEL
+
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={
+                              manualRate
+                            }
+                            onChange={(
+                              event,
+                            ) => {
+                              setManualRate(
+                                event.target
+                                  .value,
+                              )
+
+                              setPreview(
+                                null,
+                              )
+                            }}
+                            placeholder="0"
+                          />
+                        </label>
+                      </div>
+                    )}
+
+                    <label>
+                      {isCryptoCurrency
+                        ? 'Источник оценки'
+                        : 'Источник курса'}
+
+                      <input
+                        type="text"
+                        value={
+                          manualSource
+                        }
+                        onChange={(
+                          event,
+                        ) => {
+                          setManualSource(
+                            event.target
+                              .value,
+                          )
+
+                          setPreview(
+                            null,
+                          )
+                        }}
+                        placeholder={
+                          isCryptoCurrency
+                            ? 'Например: Binance'
+                            : 'Например: TBC Bank'
+                        }
+                      />
+                    </label>
+                  </>
+              )}
+
+              {isCryptoCurrency &&
+                rateMode ===
+                  'ready_gel' && (
+                  <label>
+                    GEL-эквивалент
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={
+                        readyAmountGel
+                      }
+                      onChange={(
+                        event,
+                      ) => {
+                        setReadyAmountGel(
+                          event.target
+                            .value,
+                        )
+
+                        setPreview(
+                          null,
+                        )
+                      }}
+                      placeholder="0.00"
+                    />
+
+                    <small className="field-hint">
+                      Готовая стоимость
+                      всей операции
+                      в GEL
+                    </small>
+                  </label>
+                )}
 
               <label>
                 Категория декларации
 
                 <select
-                  value={category}
+                  value={
+                    category
+                  }
+                  disabled={
+                    isCryptoWallet
+                  }
                   onChange={(
                     event,
                   ) => {
@@ -703,6 +1383,14 @@ export function MiniIncomeForm({
                     ),
                   )}
                 </select>
+
+                {isCryptoWallet && (
+                  <small className="field-hint">
+                    Для криптовалюты
+                    используется
+                    графа 21
+                  </small>
+                )}
               </label>
 
               <label>
@@ -711,6 +1399,9 @@ export function MiniIncomeForm({
                 <select
                   value={
                     paymentMethod
+                  }
+                  disabled={
+                    isCryptoWallet
                   }
                   onChange={(
                     event,
@@ -722,15 +1413,26 @@ export function MiniIncomeForm({
                   }
                 >
                   <option value="bank_transfer">
-                    Банковский перевод
+                    Банковский
+                    перевод
                   </option>
 
-                  <option value="card">
-                    Карта
+                  <option value="bank_card">
+                    Банковская
+                    карта
                   </option>
 
                   <option value="cash">
                     Наличные
+                  </option>
+
+                  <option value="payment_system">
+                    Платёжная
+                    система
+                  </option>
+
+                  <option value="crypto">
+                    Криптовалюта
                   </option>
 
                   <option value="other">
@@ -786,6 +1488,14 @@ export function MiniIncomeForm({
                     Источник:{' '}
                     {
                       preview.source
+                    }
+                  </small>
+
+                  <small>
+                    Графа:{' '}
+                    {
+                      preview
+                        .declaration_category
                     }
                   </small>
 

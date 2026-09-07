@@ -236,9 +236,23 @@ class TelegramWebhookAPIView(APIView):
 
         update = request.data
 
-        message = update.get('message') or update.get('edited_message') or {}
+        message = (
+            update.get('message')
+            or update.get('edited_message')
+            or {}
+        )
 
         text = message.get('text', '')
+
+        telegram_user = (
+            message.get('from')
+            or {}
+        )
+
+        chat = (
+            message.get('chat')
+            or {}
+        )
 
         chat_id = chat.get('id')
 
@@ -259,11 +273,9 @@ class TelegramWebhookAPIView(APIView):
                     error,
                 )
 
-        telegram_user = message.get('from') or {}
-
-        chat = message.get('chat') or {}
-
-        telegram_user_id = telegram_user.get('id')
+        telegram_user_id = (
+            telegram_user.get('id')
+        )
 
         if telegram_user_id:
             connection = TelegramConnection.objects.filter(
