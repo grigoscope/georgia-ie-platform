@@ -51,6 +51,10 @@ import {
   MiniInvoicesSection,
 } from '../components/MiniInvoicesSection'
 
+import {
+  MiniTaxesSection,
+} from '../components/MiniTaxesSection'
+
 type MiniAppState =
   | 'loading'
   | 'login'
@@ -72,21 +76,6 @@ const INVOICE_STATUS_LABELS:
     paid: 'Оплачен',
     cancelled: 'Отменён',
   }
-
-const MONTHS = [
-  'Январь',
-  'Февраль',
-  'Март',
-  'Апрель',
-  'Май',
-  'Июнь',
-  'Июль',
-  'Август',
-  'Сентябрь',
-  'Октябрь',
-  'Ноябрь',
-  'Декабрь',
-]
 
 function formatAmount(
   value: string | number,
@@ -121,22 +110,6 @@ function formatDateTime(
     },
   ).format(
     new Date(value),
-  )
-}
-
-function formatDate(
-  value: string | null,
-) {
-  if (!value) {
-    return '—'
-  }
-
-  return new Intl.DateTimeFormat(
-    'ru-RU',
-  ).format(
-    new Date(
-      `${value}T12:00:00`,
-    ),
   )
 }
 
@@ -993,119 +966,10 @@ export function MiniAppPage() {
 
           {section ===
             'taxes' && (
-            <section className="mini-app-card">
-              <div className="mini-section-heading">
-                <div>
-                  <p className="eyebrow">
-                    Декларации
-                  </p>
-
-                  <h2>
-                    Налоги
-                  </h2>
-                </div>
-              </div>
-
-              {taxPeriods.length ===
-              0 ? (
-                <div className="mini-empty">
-                  Налоговых периодов
-                  пока нет
-                </div>
-              ) : (
-                <div className="mini-list">
-                  {taxPeriods
-                    .slice(0, 6)
-                    .map(
-                      (
-                        period,
-                      ) => (
-                        <div
-                          key={
-                            period.id
-                          }
-                          className="mini-tax-card"
-                        >
-                          <div className="mini-tax-heading">
-                            <div>
-                              <strong>
-                                {
-                                  MONTHS[
-                                    period.month -
-                                      1
-                                  ]
-                                }{' '}
-                                {
-                                  period.year
-                                }
-                              </strong>
-
-                              <span>
-                                Срок:{' '}
-                                {formatDate(
-                                  period.deadline,
-                                )}
-                              </span>
-                            </div>
-
-                            {period.is_overdue && (
-                              <span className="mini-overdue">
-                                Просрочено
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="mini-tax-values">
-                            <div>
-                              <span>
-                                Доход
-                              </span>
-
-                              <strong>
-                                {formatAmount(
-                                  period.field_17,
-                                )}{' '}
-                                GEL
-                              </strong>
-                            </div>
-
-                            <div>
-                              <span>
-                                Налог
-                              </span>
-
-                              <strong>
-                                {formatAmount(
-                                  period.field_26,
-                                )}{' '}
-                                GEL
-                              </strong>
-                            </div>
-                          </div>
-
-                          <div className="mini-tax-statuses">
-                            <span>
-                              Декларация:{' '}
-                              {period.declaration_status ===
-                              'submitted'
-                                ? 'подана'
-                                : 'не подана'}
-                            </span>
-
-                            <span>
-                              Оплата:{' '}
-                              {period.payment_status ===
-                              'paid'
-                                ? 'оплачено'
-                                : 'не оплачено'}
-                            </span>
-                          </div>
-                        </div>
-                      ),
-                    )}
-                </div>
-              )}
-            </section>
+            <MiniTaxesSection
+              taxPeriods={taxPeriods}
+              onRefresh={loadData}
+            />
           )}
         </>
       )}
