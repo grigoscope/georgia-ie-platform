@@ -2729,3 +2729,48 @@ p {
     anywhere;
   font-size: 11px;
 }
+
+.income-crypto-info {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background:
+    rgb(120 130 125 / 8%);
+}
+
+.income-crypto-info > div {
+  display: grid;
+  gap: 5px;
+}
+
+.income-crypto-info span {
+  color: #78827e;
+  font-size: 12px;
+}
+
+.income-crypto-info strong {
+  overflow-wrap: anywhere;
+}
+
+.income-description-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.income-description-cell small {
+  color: #78827e;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+@media (
+  max-width: 700px
+) {
+  .income-crypto-info {
+    grid-template-columns:
+      1fr;
+  }
+}
