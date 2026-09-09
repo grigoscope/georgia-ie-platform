@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useState,
   type FormEvent,
 } from 'react'
@@ -188,8 +189,10 @@ export function IncomeEditPage() {
     setCurrencyId,
   ] = useState('')
 
-  const [amount, setAmount] =
-    useState('')
+  const [
+    amount,
+    setAmount,
+  ] = useState('')
 
   const [
     declarationCategory,
@@ -213,8 +216,10 @@ export function IncomeEditPage() {
     setDocumentDate,
   ] = useState('')
 
-  const [comment, setComment] =
-    useState('')
+  const [
+    comment,
+    setComment,
+  ] = useState('')
 
   const [
     rateMode,
@@ -243,12 +248,124 @@ export function IncomeEditPage() {
     setReadyAmountGel,
   ] = useState('')
 
+  const [
+    cryptoTxHash,
+    setCryptoTxHash,
+  ] = useState('')
+
+  const selectedAccount =
+    useMemo(
+      () =>
+        accounts.find(
+          (account) =>
+            account.id ===
+            Number(accountId),
+        ) ?? null,
+      [
+        accounts,
+        accountId,
+      ],
+    )
+
   const selectedCurrency =
-    currencies.find(
-      (currency) =>
-        currency.id ===
-        Number(currencyId),
-    ) ?? null
+    useMemo(
+      () =>
+        currencies.find(
+          (currency) =>
+            currency.id ===
+            Number(currencyId),
+        ) ?? null,
+      [
+        currencies,
+        currencyId,
+      ],
+    )
+
+  const isCryptoWallet =
+    selectedAccount?.type ===
+    'crypto_wallet'
+
+  const isCryptoCurrency =
+    selectedCurrency?.kind ===
+    'crypto'
+
+  const availableCurrencies =
+    useMemo(
+      () =>
+        currencies.filter(
+          (currency) =>
+            (
+              currency.is_active ||
+              currency.id ===
+                Number(currencyId)
+            ) &&
+            (
+              isCryptoWallet
+                ? currency.kind ===
+                  'crypto'
+                : currency.kind ===
+                  'fiat'
+            ),
+        ),
+      [
+        currencies,
+        currencyId,
+        isCryptoWallet,
+      ],
+    )
+
+  const usesOriginalAccount =
+    income !== null &&
+    selectedAccount?.id ===
+      income.financial_account
+
+  const displayedCryptoAsset =
+    usesOriginalAccount
+      ? (
+          income?.crypto_asset ||
+          selectedAccount
+            ?.crypto_asset ||
+          selectedAccount
+            ?.default_currency_code ||
+          '—'
+        )
+      : (
+          selectedAccount
+            ?.crypto_asset ||
+          selectedAccount
+            ?.default_currency_code ||
+          '—'
+        )
+
+  const displayedCryptoNetwork =
+    usesOriginalAccount
+      ? (
+          income
+            ?.crypto_network ||
+          selectedAccount
+            ?.crypto_network ||
+          '—'
+        )
+      : (
+          selectedAccount
+            ?.crypto_network ||
+          '—'
+        )
+
+  const displayedWalletAddress =
+    usesOriginalAccount
+      ? (
+          income
+            ?.crypto_wallet_address ||
+          selectedAccount
+            ?.wallet_address ||
+          '—'
+        )
+      : (
+          selectedAccount
+            ?.wallet_address ||
+          '—'
+        )
 
   useEffect(() => {
     let cancelled = false
@@ -281,7 +398,9 @@ export function IncomeEditPage() {
         }
 
         setIncome(incomeResult)
-        setAccounts(accountsResult)
+        setAccounts(
+          accountsResult,
+        )
         setCurrencies(
           currenciesResult,
         )
@@ -337,6 +456,12 @@ export function IncomeEditPage() {
           incomeResult.comment,
         )
 
+        setCryptoTxHash(
+          incomeResult
+            .crypto_tx_hash ||
+            '',
+        )
+
         const mode =
           getRateMode(
             incomeResult,
@@ -344,7 +469,9 @@ export function IncomeEditPage() {
 
         setRateMode(mode)
 
-        if (mode === 'manual') {
+        if (
+          mode === 'manual'
+        ) {
           setManualRate(
             incomeResult
               .exchange_rate_value,
@@ -370,7 +497,9 @@ export function IncomeEditPage() {
             incomeResult.amount_gel,
           )
         }
-      } catch (requestError) {
+      } catch (
+        requestError
+      ) {
         if (!cancelled) {
           setError(
             getApiErrorMessage(
@@ -396,6 +525,130 @@ export function IncomeEditPage() {
     setPreview(null)
   }
 
+  function clearRateFields() {
+    setManualRate('')
+    setManualRateUnit('1')
+    setManualSource('')
+    setReadyAmountGel('')
+  }
+
+  function changeAccount(
+    value: string,
+  ) {
+    const account =
+      accounts.find(
+        (item) =>
+          item.id ===
+          Number(value),
+      )
+
+    if (!account) {
+      return
+    }
+
+    const currency =
+      currencies.find(
+        (item) =>
+          item.id ===
+          account.default_currency,
+      )
+
+    setAccountId(value)
+
+    setCurrencyId(
+      String(
+        account.default_currency,
+      ),
+    )
+
+    clearRateFields()
+
+    if (
+      account.type ===
+      'crypto_wallet'
+    ) {
+      setRateMode('manual')
+      setDeclarationCategory(
+        'other_21',
+      )
+      setPaymentMethod(
+        'crypto',
+      )
+
+      if (
+        income &&
+        account.id !==
+          income.financial_account
+      ) {
+        setCryptoTxHash('')
+      }
+    } else {
+      setRateMode(
+        currency?.code ===
+          'GEL'
+          ? 'automatic'
+          : 'automatic',
+      )
+
+      setDeclarationCategory(
+        account
+          .default_declaration_category ||
+          'cashless_20',
+      )
+
+      setPaymentMethod(
+        'bank_transfer',
+      )
+
+      setCryptoTxHash('')
+    }
+
+    invalidatePreview()
+  }
+
+  function changeCurrency(
+    value: string,
+  ) {
+    const currency =
+      currencies.find(
+        (item) =>
+          item.id ===
+          Number(value),
+      )
+
+    if (!currency) {
+      return
+    }
+
+    setCurrencyId(value)
+    clearRateFields()
+
+    if (
+      currency.kind ===
+      'crypto'
+    ) {
+      setRateMode('manual')
+      setDeclarationCategory(
+        'other_21',
+      )
+      setPaymentMethod(
+        'crypto',
+      )
+    } else {
+      setRateMode('automatic')
+    }
+
+    invalidatePreview()
+  }
+
+  function changeRateMode(
+    value: RateMode,
+  ) {
+    setRateMode(value)
+    clearRateFields()
+    invalidatePreview()
+  }
+
   function getRateFields() {
     if (
       !selectedCurrency ||
@@ -411,10 +664,14 @@ export function IncomeEditPage() {
       return {
         manual_rate_value:
           manualRate,
+
         manual_rate_unit:
-          Number(
-            manualRateUnit,
-          ),
+          isCryptoCurrency
+            ? 1
+            : Number(
+                manualRateUnit,
+              ),
+
         manual_source:
           manualSource.trim() ||
           'Ручной ввод',
@@ -433,7 +690,161 @@ export function IncomeEditPage() {
     return {}
   }
 
+  function validateForm() {
+    if (!accountId) {
+      return (
+        'Выберите финансовый счёт'
+      )
+    }
+
+    if (!currencyId) {
+      return 'Выберите валюту'
+    }
+
+    if (
+      !amount ||
+      Number(amount) <= 0
+    ) {
+      return (
+        'Введите сумму больше нуля'
+      )
+    }
+
+    if (!description.trim()) {
+      return (
+        'Введите описание дохода'
+      )
+    }
+
+    if (isCryptoWallet) {
+      if (
+        !isCryptoCurrency
+      ) {
+        return (
+          'Для криптокошелька выберите криптовалюту'
+        )
+      }
+
+      if (
+        declarationCategory !==
+        'other_21'
+      ) {
+        return (
+          'Криптовалютный доход должен относиться к графе 21'
+        )
+      }
+
+      if (
+        !cryptoTxHash.trim()
+      ) {
+        return (
+          'Укажите hash криптотранзакции'
+        )
+      }
+
+      if (
+        rateMode ===
+        'automatic'
+      ) {
+        return (
+          'Для криптовалюты укажите курс или GEL-эквивалент'
+        )
+      }
+
+      if (
+        rateMode ===
+          'manual' &&
+        (
+          !manualRate ||
+          Number(
+            manualRate,
+          ) <= 0
+        )
+      ) {
+        return (
+          'Укажите курс криптовалюты'
+        )
+      }
+
+      if (
+        rateMode ===
+          'manual' &&
+        !manualSource.trim()
+      ) {
+        return (
+          'Укажите источник оценки криптовалюты'
+        )
+      }
+
+      if (
+        rateMode ===
+          'ready_gel' &&
+        (
+          !readyAmountGel ||
+          Number(
+            readyAmountGel,
+          ) <= 0
+        )
+      ) {
+        return (
+          'Укажите GEL-эквивалент'
+        )
+      }
+    }
+
+    if (
+      !isCryptoWallet &&
+      isCryptoCurrency
+    ) {
+      return (
+        'Для криптовалюты выберите криптокошелёк'
+      )
+    }
+
+    if (
+      !isCryptoCurrency &&
+      selectedCurrency?.code !==
+        'GEL' &&
+      rateMode ===
+        'manual'
+    ) {
+      if (
+        !manualRate ||
+        Number(
+          manualRate,
+        ) <= 0
+      ) {
+        return (
+          'Введите ручной курс'
+        )
+      }
+
+      if (
+        Number(
+          manualRateUnit,
+        ) <= 0
+      ) {
+        return (
+          'Количество единиц валюты должно быть больше нуля'
+        )
+      }
+    }
+
+    return ''
+  }
+
   async function calculatePreview() {
+    const validationError =
+      validateForm()
+
+    if (validationError) {
+      setError(
+        validationError,
+      )
+
+      return
+    }
+
     setError('')
     setPreviewLoading(true)
 
@@ -444,19 +855,26 @@ export function IncomeEditPage() {
             toTbilisiIso(
               receivedAt,
             ),
+
           financial_account:
             Number(accountId),
+
           original_amount:
             amount,
+
           original_currency:
             Number(currencyId),
+
           declaration_category:
             declarationCategory,
+
           ...getRateFields(),
         })
 
       setPreview(result)
-    } catch (requestError) {
+    } catch (
+      requestError
+    ) {
       setError(
         getApiErrorMessage(
           requestError,
@@ -468,11 +886,23 @@ export function IncomeEditPage() {
   }
 
   async function saveIncome(
-    event: FormEvent<HTMLFormElement>,
+    event:
+      FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
 
     if (!income) {
+      return
+    }
+
+    const validationError =
+      validateForm()
+
+    if (validationError) {
+      setError(
+        validationError,
+      )
+
       return
     }
 
@@ -495,30 +925,52 @@ export function IncomeEditPage() {
             toTbilisiIso(
               receivedAt,
             ),
+
           description:
             description.trim(),
+
           financial_account:
             Number(accountId),
+
           payment_method:
             paymentMethod,
+
           document_number:
             documentNumber.trim(),
+
           document_date:
             documentDate || null,
+
           original_amount:
             amount,
+
           original_currency:
             Number(currencyId),
+
           declaration_category:
             declarationCategory,
+
           comment:
             comment.trim(),
+
+          ...(isCryptoWallet
+            ? {
+                crypto_tx_hash:
+                  cryptoTxHash.trim(),
+              }
+            : {
+                crypto_tx_hash:
+                  '',
+              }),
+
           ...getRateFields(),
         },
       )
 
       navigate('/incomes')
-    } catch (requestError) {
+    } catch (
+      requestError
+    ) {
       setError(
         getApiErrorMessage(
           requestError,
@@ -592,18 +1044,20 @@ export function IncomeEditPage() {
 
             <select
               value={accountId}
-              onChange={(event) => {
-                setAccountId(
+              onChange={(event) =>
+                changeAccount(
                   event.target.value,
                 )
-
-                invalidatePreview()
-              }}
+              }
+              required
             >
               {accounts
                 .filter(
                   (account) =>
-                    account.is_active,
+                    account.is_active ||
+                    account.id ===
+                      income
+                        .financial_account,
                 )
                 .map(
                   (account) => (
@@ -612,11 +1066,57 @@ export function IncomeEditPage() {
                       value={account.id}
                     >
                       {account.name}
+                      {' — '}
+                      {
+                        account
+                          .default_currency_code
+                      }
                     </option>
                   ),
                 )}
             </select>
           </label>
+
+          {isCryptoWallet &&
+            selectedAccount && (
+              <div className="income-crypto-info wide">
+                <div>
+                  <span>
+                    Криптовалюта
+                  </span>
+
+                  <strong>
+                    {
+                      displayedCryptoAsset
+                    }
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Сеть
+                  </span>
+
+                  <strong>
+                    {
+                      displayedCryptoNetwork
+                    }
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Адрес кошелька
+                  </span>
+
+                  <strong>
+                    {
+                      displayedWalletAddress
+                    }
+                  </strong>
+                </div>
+              </div>
+          )}
 
           <label className="wide">
             Описание
@@ -656,30 +1156,14 @@ export function IncomeEditPage() {
 
             <select
               value={currencyId}
-              onChange={(event) => {
-                const value =
-                  event.target.value
-
-                setCurrencyId(value)
-
-                const currency =
-                  currencies.find(
-                    (item) =>
-                      item.id ===
-                      Number(value),
-                  )
-
-                setRateMode(
-                  currency?.kind ===
-                    'crypto'
-                    ? 'manual'
-                    : 'automatic',
+              onChange={(event) =>
+                changeCurrency(
+                  event.target.value,
                 )
-
-                invalidatePreview()
-              }}
+              }
+              required
             >
-              {currencies.map(
+              {availableCurrencies.map(
                 (currency) => (
                   <option
                     key={currency.id}
@@ -694,6 +1178,30 @@ export function IncomeEditPage() {
             </select>
           </label>
 
+          {isCryptoWallet && (
+            <label className="wide">
+              Hash транзакции
+
+              <input
+                value={cryptoTxHash}
+                onChange={(event) => {
+                  setCryptoTxHash(
+                    event.target.value,
+                  )
+
+                  invalidatePreview()
+                }}
+                placeholder="0x... или transaction hash"
+                required
+              />
+
+              <small className="field-hint">
+                Идентификатор операции
+                в блокчейне
+              </small>
+            </label>
+          )}
+
           {selectedCurrency &&
             selectedCurrency.code !==
               'GEL' && (
@@ -702,14 +1210,12 @@ export function IncomeEditPage() {
 
                 <select
                   value={rateMode}
-                  onChange={(event) => {
-                    setRateMode(
+                  onChange={(event) =>
+                    changeRateMode(
                       event.target
                         .value as RateMode,
                     )
-
-                    invalidatePreview()
-                  }}
+                  }
                 >
                   {selectedCurrency.kind ===
                     'fiat' && (
@@ -719,61 +1225,113 @@ export function IncomeEditPage() {
                   )}
 
                   <option value="manual">
-                    Вручную
+                    Ввести курс вручную
                   </option>
 
                   {selectedCurrency.kind ===
                     'crypto' && (
                     <option value="ready_gel">
-                      Готовый GEL-эквивалент
+                      Указать готовый GEL-эквивалент
                     </option>
                   )}
                 </select>
               </label>
-            )}
+          )}
 
           {rateMode === 'manual' &&
             selectedCurrency?.code !==
               'GEL' && (
               <>
-                <label>
-                  Количество единиц
+                {isCryptoCurrency ? (
+                  <label>
+                    Курс 1{' '}
+                    {
+                      selectedCurrency.code
+                    }{' '}
+                    к GEL
 
-                  <input
-                    type="number"
-                    min="1"
-                    value={
-                      manualRateUnit
-                    }
-                    onChange={(event) => {
-                      setManualRateUnit(
-                        event.target.value,
-                      )
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={manualRate}
+                      onChange={(event) => {
+                        setManualRate(
+                          event.target.value,
+                        )
 
-                      invalidatePreview()
-                    }}
-                  />
-                </label>
+                        invalidatePreview()
+                      }}
+                      required
+                    />
 
-                <label>
-                  Курс к GEL
+                    <small className="field-hint">
+                      Сколько GEL стоит
+                      1{' '}
+                      {
+                        selectedCurrency.code
+                      }
+                    </small>
+                  </label>
+                ) : (
+                  <>
+                    <label>
+                      Количество единиц
 
-                  <input
-                    type="number"
-                    step="any"
-                    value={manualRate}
-                    onChange={(event) => {
-                      setManualRate(
-                        event.target.value,
-                      )
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={
+                          manualRateUnit
+                        }
+                        onChange={(event) => {
+                          setManualRateUnit(
+                            event.target.value,
+                          )
 
-                      invalidatePreview()
-                    }}
-                  />
-                </label>
+                          invalidatePreview()
+                        }}
+                        required
+                      />
 
-                <label>
-                  Источник курса
+                      <small className="field-hint">
+                        Например: 1 USD
+                        или 100 RUB
+                      </small>
+                    </label>
+
+                    <label>
+                      Курс к GEL
+
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={manualRate}
+                        onChange={(event) => {
+                          setManualRate(
+                            event.target.value,
+                          )
+
+                          invalidatePreview()
+                        }}
+                        required
+                      />
+                    </label>
+                  </>
+                )}
+
+                <label
+                  className={
+                    isCryptoCurrency
+                      ? ''
+                      : 'wide'
+                  }
+                >
+                  {isCryptoCurrency
+                    ? 'Источник оценки'
+                    : 'Источник курса'}
 
                   <input
                     value={manualSource}
@@ -784,10 +1342,18 @@ export function IncomeEditPage() {
 
                       invalidatePreview()
                     }}
+                    placeholder={
+                      isCryptoCurrency
+                        ? 'Например: Binance'
+                        : 'Например: TBC Bank'
+                    }
+                    required={
+                      isCryptoCurrency
+                    }
                   />
                 </label>
               </>
-            )}
+          )}
 
           {rateMode ===
             'ready_gel' && (
@@ -796,6 +1362,7 @@ export function IncomeEditPage() {
 
               <input
                 type="number"
+                min="0"
                 step="any"
                 value={readyAmountGel}
                 onChange={(event) => {
@@ -805,7 +1372,13 @@ export function IncomeEditPage() {
 
                   invalidatePreview()
                 }}
+                required
               />
+
+              <small className="field-hint">
+                Итоговая стоимость
+                операции в GEL
+              </small>
             </label>
           )}
 
@@ -814,6 +1387,9 @@ export function IncomeEditPage() {
 
             <select
               value={paymentMethod}
+              disabled={
+                isCryptoWallet
+              }
               onChange={(event) =>
                 setPaymentMethod(
                   event.target.value,
@@ -842,6 +1418,10 @@ export function IncomeEditPage() {
 
               <option value="crypto">
                 Криптовалюта
+              </option>
+
+              <option value="barter">
+                Бартер
               </option>
 
               <option value="other">
@@ -885,11 +1465,16 @@ export function IncomeEditPage() {
               value={
                 declarationCategory
               }
-              onChange={(event) =>
+              disabled={
+                isCryptoWallet
+              }
+              onChange={(event) => {
                 setDeclarationCategory(
                   event.target.value,
                 )
-              }
+
+                invalidatePreview()
+              }}
             >
               {Object.entries(
                 CATEGORY_LABELS,
@@ -907,6 +1492,13 @@ export function IncomeEditPage() {
                 ),
               )}
             </select>
+
+            {isCryptoWallet && (
+              <small className="field-hint">
+                Криптовалютный доход
+                относится к графе 21
+              </small>
+            )}
           </label>
 
           <label className="wide">
@@ -921,6 +1513,55 @@ export function IncomeEditPage() {
               }
             />
           </label>
+
+          <div className="income-preview wide">
+            <div>
+              <span className="muted">
+                Сохранено сейчас
+              </span>
+
+              <strong>
+                {income.amount_gel}{' '}
+                GEL
+              </strong>
+            </div>
+
+            <div>
+              <span className="muted">
+                Сохранённый курс
+              </span>
+
+              <strong>
+                {
+                  income
+                    .exchange_rate_unit
+                }{' '}
+                {
+                  selectedCurrency
+                    ?.code ?? ''
+                }
+                {' = '}
+                {
+                  income
+                    .exchange_rate_value
+                }{' '}
+                GEL
+              </strong>
+            </div>
+
+            <div>
+              <span className="muted">
+                Источник
+              </span>
+
+              <strong>
+                {
+                  income
+                    .exchange_rate_source
+                }
+              </strong>
+            </div>
+          </div>
 
           <div className="wide preview-actions">
             <button
@@ -947,10 +1588,19 @@ export function IncomeEditPage() {
                 </span>
 
                 <strong>
-                  {preview.data.rate_unit}{' '}
-                  {preview.data.currency}
+                  {
+                    preview.data
+                      .rate_unit
+                  }{' '}
+                  {
+                    preview.data
+                      .currency
+                  }
                   {' = '}
-                  {preview.data.rate_value}{' '}
+                  {
+                    preview.data
+                      .rate_value
+                  }{' '}
                   GEL
                 </strong>
               </div>
@@ -961,8 +1611,40 @@ export function IncomeEditPage() {
                 </span>
 
                 <strong className="preview-gel">
-                  {preview.data.amount_gel}{' '}
+                  {
+                    preview.data
+                      .amount_gel
+                  }{' '}
                   GEL
+                </strong>
+              </div>
+
+              <div>
+                <span className="muted">
+                  Источник
+                </span>
+
+                <strong>
+                  {
+                    preview.data
+                      .source
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span className="muted">
+                  Графа
+                </span>
+
+                <strong>
+                  {
+                    CATEGORY_LABELS[
+                      declarationCategory ||
+                        preview.data
+                          .declaration_category
+                    ]
+                  }
                 </strong>
               </div>
 
