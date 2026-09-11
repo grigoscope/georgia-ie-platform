@@ -246,6 +246,11 @@ class IncomeService:
             else income.financial_account
         )
 
+        financial_account_changed = (
+            new_financial_account.pk
+            != income.financial_account_id
+        )
+
         new_original_amount = (
             original_amount
             if original_amount is not None
@@ -429,23 +434,45 @@ class IncomeService:
             new_financial_account.type
             == 'crypto_wallet'
         ):
-            income.crypto_asset = (
-                new_financial_account
-                .crypto_asset
-                .strip()
-            )
+            if financial_account_changed:
+                income.crypto_asset = (
+                    new_financial_account
+                    .crypto_asset
+                    .strip()
+                )
 
-            income.crypto_network = (
-                new_financial_account
-                .crypto_network
-                .strip()
-            )
+                income.crypto_network = (
+                    new_financial_account
+                    .crypto_network
+                    .strip()
+                )
 
-            income.crypto_wallet_address = (
-                new_financial_account
-                .wallet_address
-                .strip()
-            )
+                income.crypto_wallet_address = (
+                    new_financial_account
+                    .wallet_address
+                    .strip()
+                )
+            else:
+                if not income.crypto_asset:
+                    income.crypto_asset = (
+                        new_financial_account
+                        .crypto_asset
+                        .strip()
+                    )
+
+                if not income.crypto_network:
+                    income.crypto_network = (
+                        new_financial_account
+                        .crypto_network
+                        .strip()
+                    )
+
+                if not income.crypto_wallet_address:
+                    income.crypto_wallet_address = (
+                        new_financial_account
+                        .wallet_address
+                        .strip()
+                    )
 
             income.crypto_tx_hash = (
                 new_crypto_tx_hash.strip()
