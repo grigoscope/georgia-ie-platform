@@ -273,7 +273,7 @@ export function MiniInvoicesSection({
           (account) =>
             account.is_active &&
             account.type !==
-              'crypto',
+              'crypto_wallet',
         )
 
       setSelectedInvoice(

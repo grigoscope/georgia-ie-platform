@@ -113,6 +113,21 @@ export function OnboardingPage() {
     useState('')
 
   const [
+    cryptoNetwork,
+    setCryptoNetwork,
+  ] = useState('')
+
+  const [
+    walletAddress,
+    setWalletAddress,
+  ] = useState('')
+
+  const [
+    memoTag,
+    setMemoTag,
+  ] = useState('')
+
+  const [
     useInInvoices,
     setUseInInvoices,
   ] = useState(true)
@@ -192,19 +207,25 @@ export function OnboardingPage() {
         const gel =
           currencyResult.find(
             (currency) =>
+              currency.is_active &&
               currency.code === 'GEL',
           )
 
-        if (gel) {
-          setCurrencyId(
-            String(gel.id),
+        const fiat =
+          currencyResult.find(
+            (currency) =>
+              currency.is_active &&
+              currency.kind ===
+                'fiat',
           )
-        } else if (
-          currencyResult.length > 0
-        ) {
+
+        const initialCurrency =
+          gel ?? fiat
+
+        if (initialCurrency) {
           setCurrencyId(
             String(
-              currencyResult[0].id,
+              initialCurrency.id,
             ),
           )
         }
@@ -231,7 +252,8 @@ export function OnboardingPage() {
   }, [])
 
   async function saveProfile(
-    event: FormEvent<HTMLFormElement>,
+    event:
+      FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
 
@@ -273,8 +295,69 @@ export function OnboardingPage() {
     }
   }
 
+  function changeAccountType(
+    newType: string,
+  ) {
+    setAccountType(newType)
+    setError('')
+
+    if (
+      newType ===
+      'crypto_wallet'
+    ) {
+      const cryptoCurrency =
+        currencies.find(
+          (currency) =>
+            currency.is_active &&
+            currency.kind ===
+              'crypto',
+        )
+
+      setCurrencyId(
+        cryptoCurrency
+          ? String(
+              cryptoCurrency.id,
+            )
+          : '',
+      )
+
+      setIban('')
+
+      return
+    }
+
+    const gel =
+      currencies.find(
+        (currency) =>
+          currency.is_active &&
+          currency.code === 'GEL',
+      )
+
+    const fiat =
+      currencies.find(
+        (currency) =>
+          currency.is_active &&
+          currency.kind ===
+            'fiat',
+      )
+
+    const currency =
+      gel ?? fiat
+
+    setCurrencyId(
+      currency
+        ? String(currency.id)
+        : '',
+    )
+
+    setCryptoNetwork('')
+    setWalletAddress('')
+    setMemoTag('')
+  }
+
   async function saveAccount(
-    event: FormEvent<HTMLFormElement>,
+    event:
+      FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
 
@@ -282,35 +365,102 @@ export function OnboardingPage() {
     setError('')
 
     try {
-      const selectedCurrency =
-        Number(currencyId)
-
-      if (!selectedCurrency) {
-        setError(
+      if (!currencyId) {
+        throw new Error(
           'Выберите валюту счёта',
         )
+      }
 
-        return
+      const selectedCurrency =
+        currencies.find(
+          (currency) =>
+            currency.id ===
+            Number(currencyId),
+        )
+
+      if (!selectedCurrency) {
+        throw new Error(
+          'Валюта не найдена',
+        )
+      }
+
+      const isCrypto =
+        accountType ===
+        'crypto_wallet'
+
+      if (isCrypto) {
+        if (
+          selectedCurrency.kind !==
+          'crypto'
+        ) {
+          throw new Error(
+            'Для криптокошелька выберите криптовалюту',
+          )
+        }
+
+        if (
+          !cryptoNetwork.trim()
+        ) {
+          throw new Error(
+            'Укажите сеть криптовалюты',
+          )
+        }
+
+        if (
+          !walletAddress.trim()
+        ) {
+          throw new Error(
+            'Укажите адрес кошелька',
+          )
+        }
+      }
+
+      if (
+        !isCrypto &&
+        selectedCurrency.kind !==
+          'fiat'
+      ) {
+        throw new Error(
+          'Для обычного счёта выберите обычную валюту',
+        )
       }
 
       const account =
         await createAccountRequest({
-          name: accountName.trim(),
+          name:
+            accountName.trim(),
           type: accountType,
           default_currency:
-            selectedCurrency,
+            selectedCurrency.id,
           provider_name:
             providerName.trim(),
           account_holder: '',
-          iban: iban.trim(),
+          iban:
+            isCrypto
+              ? ''
+              : iban.trim(),
           swift_bic: '',
           account_identifier: '',
-          crypto_asset: '',
-          crypto_network: '',
-          wallet_address: '',
-          memo_tag: '',
+          crypto_asset:
+            isCrypto
+              ? selectedCurrency.code
+              : '',
+          crypto_network:
+            isCrypto
+              ? cryptoNetwork.trim()
+              : '',
+          wallet_address:
+            isCrypto
+              ? walletAddress.trim()
+              : '',
+          memo_tag:
+            isCrypto
+              ? memoTag.trim()
+              : '',
           default_declaration_category:
-            '',
+            isCrypto
+              ? 'other_21'
+              : '',
           payment_instructions: '',
           use_in_invoices:
             useInInvoices,
@@ -453,33 +603,35 @@ export function OnboardingPage() {
             </label>
 
             <label>
-                Налоговый статус
+              Налоговый статус
 
-                <select
-                    value={entrepreneurStatus}
-                    onChange={(event) =>
-                    setEntrepreneurStatus(
-                        event.target.value,
-                    )
-                    }
-                >
-                    <option value="small_business">
-                    Малый бизнес
-                    </option>
+              <select
+                value={
+                  entrepreneurStatus
+                }
+                onChange={(event) =>
+                  setEntrepreneurStatus(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="small_business">
+                  Малый бизнес
+                </option>
 
-                    <option value="micro_business">
-                    Микробизнес
-                    </option>
+                <option value="micro_business">
+                  Микробизнес
+                </option>
 
-                    <option value="general">
-                    Без специального статуса
-                    </option>
-                </select>
+                <option value="general">
+                  Без специального статуса
+                </option>
+              </select>
             </label>
 
             <p className="field-hint">
-                Статус, зарегистрированный
-                в Revenue Service Грузии
+              Статус, зарегистрированный
+              в Revenue Service Грузии
             </p>
 
             <label>
@@ -629,7 +781,12 @@ export function OnboardingPage() {
                     event.target.value,
                   )
                 }
-                placeholder="Например: TBC GEL"
+                placeholder={
+                  accountType ===
+                  'crypto_wallet'
+                    ? 'Например: USDT TRC20'
+                    : 'Например: TBC GEL'
+                }
                 required
               />
             </label>
@@ -640,7 +797,7 @@ export function OnboardingPage() {
               <select
                 value={accountType}
                 onChange={(event) =>
-                  setAccountType(
+                  changeAccountType(
                     event.target.value,
                   )
                 }
@@ -691,45 +848,35 @@ export function OnboardingPage() {
                 }
                 required
               >
-                <optgroup label="Обычные валюты">
-                    {currencies
-                        .filter(
-                        (currency) =>
-                            currency.kind === 'fiat',
-                        )
-                        .map(
-                        (currency) => (
-                            <option
-                            key={currency.id}
-                            value={currency.id}
-                            >
-                            {currency.code}
-                            {' — '}
-                            {currency.name}
-                            </option>
-                        ),
-                        )}
-                </optgroup>
-
-                <optgroup label="Криптовалюты">
-                    {currencies
-                        .filter(
-                        (currency) =>
-                            currency.kind === 'crypto',
-                        )
-                        .map(
-                        (currency) => (
-                            <option
-                            key={currency.id}
-                            value={currency.id}
-                            >
-                            {currency.code}
-                            {' — '}
-                            {currency.name}
-                            </option>
-                        ),
-                        )}
-                </optgroup>
+                {currencies
+                  .filter(
+                    (currency) =>
+                      currency.is_active &&
+                      (
+                        accountType ===
+                        'crypto_wallet'
+                          ? currency.kind ===
+                            'crypto'
+                          : currency.kind ===
+                            'fiat'
+                      ),
+                  )
+                  .map(
+                    (currency) => (
+                      <option
+                        key={
+                          currency.id
+                        }
+                        value={
+                          currency.id
+                        }
+                      >
+                        {currency.code}
+                        {' — '}
+                        {currency.name}
+                      </option>
+                    ),
+                  )}
               </select>
             </label>
 
@@ -743,22 +890,80 @@ export function OnboardingPage() {
                     event.target.value,
                   )
                 }
-                placeholder="TBC Bank"
-              />
-            </label>
-
-            <label className="wide">
-              IBAN
-
-              <input
-                value={iban}
-                onChange={(event) =>
-                  setIban(
-                    event.target.value,
-                  )
+                placeholder={
+                  accountType ===
+                  'crypto_wallet'
+                    ? 'Например: Binance'
+                    : 'TBC Bank'
                 }
               />
             </label>
+
+            {accountType ===
+            'crypto_wallet' ? (
+              <>
+                <label>
+                  Сеть
+
+                  <input
+                    value={
+                      cryptoNetwork
+                    }
+                    onChange={(event) =>
+                      setCryptoNetwork(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Например: TRC20, ERC20, BEP20"
+                    required
+                  />
+                </label>
+
+                <label className="wide">
+                  Адрес кошелька
+
+                  <input
+                    value={
+                      walletAddress
+                    }
+                    onChange={(event) =>
+                      setWalletAddress(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Адрес криптокошелька"
+                    required
+                  />
+                </label>
+
+                <label>
+                  Memo / Tag
+
+                  <input
+                    value={memoTag}
+                    onChange={(event) =>
+                      setMemoTag(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Необязательно"
+                  />
+                </label>
+              </>
+            ) : (
+              <label className="wide">
+                IBAN
+
+                <input
+                  value={iban}
+                  onChange={(event) =>
+                    setIban(
+                      event.target.value,
+                    )
+                  }
+                />
+              </label>
+            )}
 
             <label className="checkbox-row wide">
               <input

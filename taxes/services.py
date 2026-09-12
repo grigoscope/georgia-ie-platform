@@ -152,6 +152,11 @@ class TaxPeriodCalculationService:
 
         period.calculated_at = timezone.now()
 
+        period.is_overdue = (
+            period.deadline
+            < timezone.localdate()
+        )
+
         should_notify = False
 
         if old_values is not None:

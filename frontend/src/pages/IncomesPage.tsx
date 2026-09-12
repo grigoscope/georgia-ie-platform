@@ -422,15 +422,38 @@ export function IncomesPage() {
 
   const availableCurrencies =
     currencies.filter(
-      (currency) =>
-        currency.is_active &&
-        (
-          isCryptoWallet
-            ? currency.kind ===
-              'crypto'
-            : currency.kind ===
-              'fiat'
-        ),
+      (currency) => {
+        if (!currency.is_active) {
+          return false
+        }
+
+        if (!isCryptoWallet) {
+          return (
+            currency.kind ===
+            'fiat'
+          )
+        }
+
+        if (
+          currency.kind !==
+          'crypto'
+        ) {
+          return false
+        }
+
+        const asset =
+          selectedAccount
+            ?.crypto_asset
+            .trim()
+            .toUpperCase()
+
+        return (
+          !asset ||
+          currency.code
+            .toUpperCase() ===
+            asset
+        )
+      },
     )
 
   useEffect(() => {

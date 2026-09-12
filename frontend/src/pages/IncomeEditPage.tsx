@@ -293,24 +293,52 @@ export function IncomeEditPage() {
     useMemo(
       () =>
         currencies.filter(
-          (currency) =>
-            (
-              currency.is_active ||
+          (currency) => {
+            const isCurrent =
               currency.id ===
-                Number(currencyId)
-            ) &&
-            (
-              isCryptoWallet
-                ? currency.kind ===
-                  'crypto'
-                : currency.kind ===
-                  'fiat'
-            ),
+              Number(currencyId)
+
+            if (
+              !currency.is_active &&
+              !isCurrent
+            ) {
+              return false
+            }
+
+            if (!isCryptoWallet) {
+              return (
+                currency.kind ===
+                'fiat'
+              )
+            }
+
+            if (
+              currency.kind !==
+              'crypto'
+            ) {
+              return false
+            }
+
+            const asset =
+              selectedAccount
+                ?.crypto_asset
+                .trim()
+                .toUpperCase()
+
+            return (
+              isCurrent ||
+              !asset ||
+              currency.code
+                .toUpperCase() ===
+                asset
+            )
+          },
         ),
       [
         currencies,
         currencyId,
         isCryptoWallet,
+        selectedAccount,
       ],
     )
 

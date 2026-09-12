@@ -263,16 +263,31 @@ export function MiniIncomeForm({
           return false
         }
 
-        if (isCryptoWallet) {
+        if (!isCryptoWallet) {
           return (
-            currency.kind ===
+            currency.kind !==
             'crypto'
           )
         }
 
-        return (
+        if (
           currency.kind !==
           'crypto'
+        ) {
+          return false
+        }
+
+        const asset =
+          selectedAccount
+            ?.crypto_asset
+            .trim()
+            .toUpperCase()
+
+        return (
+          !asset ||
+          currency.code
+            .toUpperCase() ===
+            asset
         )
       },
     )

@@ -149,6 +149,22 @@ export function AccountsSection() {
       account.iban,
     )
 
+    setCryptoNetwork(
+      account.crypto_network,
+    )
+
+    setWalletAddress(
+      account.wallet_address,
+    )
+
+    setMemoTag(
+      account.memo_tag,
+    )
+
+    setUseInInvoices(
+      account.use_in_invoices,
+    )
+
     setUseInInvoices(
       account.use_in_invoices,
     )
