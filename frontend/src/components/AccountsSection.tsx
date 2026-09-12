@@ -164,22 +164,6 @@ export function AccountsSection() {
     setUseInInvoices(
       account.use_in_invoices,
     )
-
-    setUseInInvoices(
-      account.use_in_invoices,
-    )
-
-    setWalletAddress(
-      account.wallet_address,
-    )
-
-    setMemoTag(
-      account.memo_tag,
-    )
-
-    setUseInInvoices(
-      account.use_in_invoices,
-    )
   }
 
   function getDefaultCurrencyId(
