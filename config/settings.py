@@ -280,3 +280,32 @@ MINI_APP_URL = os.getenv(
     'MINI_APP_URL',
     'http://localhost:5173/mini-app',
 )
+
+CELERY_BROKER_URL = os.getenv(
+    'CELERY_BROKER_URL',
+    'redis://127.0.0.1:6379/0',
+)
+
+CELERY_RESULT_BACKEND = os.getenv(
+    'CELERY_RESULT_BACKEND',
+    'redis://127.0.0.1:6379/1',
+)
+
+CELERY_TIMEZONE = BUSINESS_TIME_ZONE
+
+CELERY_ENABLE_UTC = True
+
+CELERY_TASK_TRACK_STARTED = True
+
+CELERY_TASK_TIME_LIMIT = 300
+
+CELERY_TASK_SOFT_TIME_LIMIT = 270
+
+CELERY_BEAT_SCHEDULE = {
+    'celery-healthcheck': {
+        'task': (
+            'notifications.celery_healthcheck'
+        ),
+        'schedule': 300.0,
+    },
+}
