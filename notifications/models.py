@@ -1,10 +1,9 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 
 
 class NotificationSettings(models.Model):
-    """Модель настроек уведомлений пользователя"""
-
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -53,12 +52,13 @@ class NotificationSettings(models.Model):
     )
 
     def __str__(self):
-        return f'Настройки уведомлений: {self.user.email}'
+        return (
+            f'Настройки уведомлений: '
+            f'{self.user.email}'
+        )
 
 
 class Notification(models.Model):
-    """Модель уведомлений"""
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -153,5 +153,18 @@ class Notification(models.Model):
             ),
         ]
 
+        constraints = [
+            models.UniqueConstraint(
+                fields=['deduplication_key'],
+                condition=~Q(
+                    deduplication_key='',
+                ),
+                name='unique_notification_deduplication_key',
+            ),
+        ]
+
     def __str__(self):
-        return f'{self.title} ({self.user.email})'
+        return (
+            f'{self.title} '
+            f'({self.user.email})'
+        )

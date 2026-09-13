@@ -16,6 +16,7 @@ from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -302,10 +303,13 @@ CELERY_TASK_TIME_LIMIT = 300
 CELERY_TASK_SOFT_TIME_LIMIT = 270
 
 CELERY_BEAT_SCHEDULE = {
-    'celery-healthcheck': {
+    'daily-tax-cycle': {
         'task': (
-            'notifications.celery_healthcheck'
+            'notifications.run_daily_tax_cycle'
         ),
-        'schedule': 300.0,
+        'schedule': crontab(
+            hour=8,
+            minute=0,
+        ),
     },
 }
