@@ -312,4 +312,13 @@ CELERY_BEAT_SCHEDULE = {
             minute=0,
         ),
     },
+
+    'dispatch-pending-telegram': {
+        'task': (
+            'notifications.dispatch_pending_telegram'
+        ),
+        'schedule': crontab(
+            minute='*/5',
+        ),
+    },
 }
