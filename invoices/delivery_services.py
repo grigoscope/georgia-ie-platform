@@ -18,19 +18,32 @@ class InvoiceDeliveryError(ValueError):
     pass
 
 
-class InvoiceDeliveryService:
-    """Отправка инвойса."""
+class TemporaryInvoiceDeliveryError(
+    InvoiceDeliveryError,
+):
+    pass
 
+
+class PermanentInvoiceDeliveryError(
+    InvoiceDeliveryError,
+):
+    pass
+
+
+class InvoiceDeliveryService:
     def ensure_pdf(self, invoice):
         if not invoice.pdf_file:
-            InvoicePDFService().generate(invoice=invoice)
-
+            InvoicePDFService().generate(
+                invoice=invoice,
+            )
             invoice.refresh_from_db()
 
         return invoice
 
     def pdf_bytes(self, invoice):
-        invoice = self.ensure_pdf(invoice)
+        invoice = self.ensure_pdf(
+            invoice,
+        )
 
         invoice.pdf_file.open('rb')
 
@@ -47,30 +60,61 @@ class InvoiceDeliveryService:
         connection,
     ):
         if invoice.status == 'cancelled':
-            raise InvoiceDeliveryError('Отменённый инвойс нельзя отправить.')
+            raise (
+                PermanentInvoiceDeliveryError(
+                    'Отменённый инвойс нельзя отправить.'
+                )
+            )
 
         if not connection.is_active:
-            raise InvoiceDeliveryError('Telegram не подключён.')
+            raise (
+                PermanentInvoiceDeliveryError(
+                    'Telegram не подключён.'
+                )
+            )
 
-        bot_token = settings.TELEGRAM_BOT_TOKEN
+        if invoice.telegram_sent_at:
+            return {
+                'ok': True,
+                'already_sent': True,
+                'result': {
+                    'message_id':
+                        invoice.telegram_message_id,
+                },
+            }
+
+        bot_token = (
+            settings.TELEGRAM_BOT_TOKEN
+        )
 
         if not bot_token:
-            raise InvoiceDeliveryError('Telegram Bot Token не настроен.')
+            raise (
+                PermanentInvoiceDeliveryError(
+                    'Telegram Bot Token не настроен.'
+                )
+            )
 
-        pdf = self.pdf_bytes(invoice)
+        pdf = self.pdf_bytes(
+            invoice,
+        )
 
-        url = f'https://api.telegram.org/bot{bot_token}/sendDocument'
+        url = (
+            f'https://api.telegram.org/'
+            f'bot{bot_token}/sendDocument'
+        )
 
         try:
             response = requests.post(
                 url,
                 data={
-                    'chat_id': (connection.telegram_chat_id),
-                    'caption': (f'Invoice {invoice.number}'),
+                    'chat_id':
+                        connection.telegram_chat_id,
+                    'caption':
+                        f'Invoice {invoice.number}',
                 },
                 files={
                     'document': (
-                        (f'invoice-{invoice.number}.pdf'),
+                        f'invoice-{invoice.number}.pdf',
                         pdf,
                         'application/pdf',
                     )
@@ -82,16 +126,74 @@ class InvoiceDeliveryService:
 
             payload = response.json()
 
-        except (
-            requests.RequestException,
-            ValueError,
-        ) as error:
-            raise InvoiceDeliveryError('Не удалось отправить инвойс в Telegram.') from error
+        except requests.Timeout as error:
+            raise (
+                TemporaryInvoiceDeliveryError(
+                    'Telegram временно недоступен.'
+                )
+            ) from error
+
+        except requests.ConnectionError as error:
+            raise (
+                TemporaryInvoiceDeliveryError(
+                    'Не удалось подключиться к Telegram.'
+                )
+            ) from error
+
+        except requests.HTTPError as error:
+            status_code = (
+                error.response.status_code
+                if error.response is not None
+                else None
+            )
+
+            if (
+                status_code == 429
+                or (
+                    status_code is not None
+                    and status_code >= 500
+                )
+            ):
+                raise (
+                    TemporaryInvoiceDeliveryError(
+                        'Telegram временно отклонил отправку.'
+                    )
+                ) from error
+
+            raise (
+                PermanentInvoiceDeliveryError(
+                    'Telegram отклонил отправку инвойса.'
+                )
+            ) from error
+
+        except ValueError as error:
+            raise (
+                PermanentInvoiceDeliveryError(
+                    'Telegram вернул некорректный ответ.'
+                )
+            ) from error
 
         if not payload.get('ok'):
-            raise InvoiceDeliveryError('Telegram отклонил отправку.')
+            raise (
+                PermanentInvoiceDeliveryError(
+                    payload.get(
+                        'description',
+                        'Telegram отклонил отправку.',
+                    )
+                )
+            )
 
-        self._mark_sent(invoice)
+        result = (
+            payload.get('result')
+            or {}
+        )
+
+        self._mark_telegram_sent(
+            invoice=invoice,
+            message_id=result.get(
+                'message_id',
+            ),
+        )
 
         return payload
 
@@ -102,30 +204,43 @@ class InvoiceDeliveryService:
         recipient,
     ):
         if invoice.status == 'cancelled':
-            raise InvoiceDeliveryError('Отменённый инвойс нельзя отправить.')
+            raise InvoiceDeliveryError(
+                'Отменённый инвойс нельзя отправить.'
+            )
 
-        pdf = self.pdf_bytes(invoice)
+        pdf = self.pdf_bytes(
+            invoice,
+        )
 
         email = EmailMessage(
-            subject=(f'Invoice {invoice.number}'),
-            body=(f'Invoice {invoice.number} is attached.'),
-            from_email=(settings.DEFAULT_FROM_EMAIL),
+            subject=f'Invoice {invoice.number}',
+            body=(
+                f'Invoice {invoice.number} '
+                f'is attached.'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[recipient],
         )
 
         email.attach(
-            (f'invoice-{invoice.number}.pdf'),
+            f'invoice-{invoice.number}.pdf',
             pdf,
             'application/pdf',
         )
 
         try:
-            email.send(fail_silently=False)
+            email.send(
+                fail_silently=False,
+            )
 
         except Exception as error:
-            raise InvoiceDeliveryError('Не удалось отправить инвойс по email.') from error
+            raise InvoiceDeliveryError(
+                'Не удалось отправить инвойс по email.'
+            ) from error
 
-        self._mark_sent(invoice)
+        self._mark_sent(
+            invoice,
+        )
 
     @staticmethod
     def _mark_sent(invoice):
@@ -140,14 +255,49 @@ class InvoiceDeliveryService:
 
         if invoice.status == 'draft':
             invoice.status = 'pending'
-            update_fields.append('status')
+            update_fields.append(
+                'status',
+            )
 
-        invoice.save(update_fields=update_fields)
+        invoice.save(
+            update_fields=update_fields,
+        )
+
+    @staticmethod
+    def _mark_telegram_sent(
+        *,
+        invoice,
+        message_id,
+    ):
+        invoice.refresh_from_db()
+
+        update_fields = [
+            'sent_at',
+            'telegram_sent_at',
+            'telegram_message_id',
+            'updated_at',
+        ]
+
+        now = timezone.now()
+
+        invoice.sent_at = now
+        invoice.telegram_sent_at = now
+        invoice.telegram_message_id = (
+            message_id
+        )
+
+        if invoice.status == 'draft':
+            invoice.status = 'pending'
+            update_fields.append(
+                'status',
+            )
+
+        invoice.save(
+            update_fields=update_fields,
+        )
 
 
 class InvoiceShareLinkService:
-    """Временная публичная ссылка."""
-
     @transaction.atomic
     def create(
         self,
@@ -155,17 +305,32 @@ class InvoiceShareLinkService:
         invoice,
         expires_in_hours,
     ):
-        invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+        invoice = (
+            Invoice.objects
+            .select_for_update()
+            .get(pk=invoice.pk)
+        )
 
-        InvoicePDFService().generate(invoice=invoice)
-
-        expires_at = timezone.now() + timedelta(hours=expires_in_hours)
-
-        link, _ = InvoiceShareLink.objects.get_or_create(
+        InvoicePDFService().generate(
             invoice=invoice,
-            defaults={
-                'expires_at': (expires_at),
-            },
+        )
+
+        expires_at = (
+            timezone.now()
+            + timedelta(
+                hours=expires_in_hours,
+            )
+        )
+
+        link, _ = (
+            InvoiceShareLink.objects
+            .get_or_create(
+                invoice=invoice,
+                defaults={
+                    'expires_at':
+                        expires_at,
+                },
+            )
         )
 
         link.token = uuid.uuid4()
@@ -182,16 +347,23 @@ class InvoiceShareLinkService:
         *,
         invoice,
     ):
-        link = InvoiceShareLink.objects.select_for_update().filter(invoice=invoice).first()
+        link = (
+            InvoiceShareLink.objects
+            .select_for_update()
+            .filter(invoice=invoice)
+            .first()
+        )
 
         if link:
-            link.revoked_at = timezone.now()
+            link.revoked_at = (
+                timezone.now()
+            )
 
             link.save(
                 update_fields=[
                     'revoked_at',
                     'updated_at',
-                ]
+                ],
             )
 
         return link

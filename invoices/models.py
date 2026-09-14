@@ -179,6 +179,23 @@ class Invoice(models.Model):
         blank=True,
     )
 
+    telegram_sent_at = models.DateTimeField(
+        verbose_name='Дата отправки PDF в Telegram',
+        null=True,
+        blank=True,
+    )
+
+    telegram_message_id = models.BigIntegerField(
+        verbose_name='Telegram message ID',
+        null=True,
+        blank=True,
+    )
+
+    is_overdue = models.BooleanField(
+        verbose_name='Просрочен',
+        default=False,
+    )
+
     generated_at = models.DateTimeField(
         verbose_name='Дата генерации PDF',
         null=True,

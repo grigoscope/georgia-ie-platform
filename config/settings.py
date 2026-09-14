@@ -321,4 +321,23 @@ CELERY_BEAT_SCHEDULE = {
             minute='*/5',
         ),
     },
+
+    'mark-overdue-invoices': {
+        'task': (
+            'invoices.mark_overdue_invoices'
+        ),
+        'schedule': crontab(
+            hour=8,
+            minute=10,
+        ),
+    },
+
+    'cleanup-expired-invoice-links': {
+        'task': (
+            'invoices.cleanup_expired_share_links'
+        ),
+        'schedule': crontab(
+            minute=30,
+        ),
+    },
 }
