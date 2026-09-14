@@ -109,3 +109,6 @@ venv.bak/
 # celery
 celerybeat-schedule
 celerybeat-schedule.*
+
+# backup files
+backups/
