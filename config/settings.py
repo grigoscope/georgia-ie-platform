@@ -350,4 +350,13 @@ CELERY_BEAT_SCHEDULE = {
             minute='*/5',
         ),
     },
+    'cleanup-expired-exports': {
+        'task': (
+            'incomes.cleanup_expired_exports'
+        ),
+        'schedule': crontab(
+            hour=3,
+            minute=0,
+        ),
+    },
 }
