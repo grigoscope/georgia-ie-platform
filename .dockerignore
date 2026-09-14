@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+media
+staticfiles
+frontend/node_modules
+frontend/dist
+playwright-report
+test-results
+celerybeat-schedule
+celerybeat-schedule.*

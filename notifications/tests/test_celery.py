@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.conf import settings
 
 from config.celery import app
 from notifications.tasks import (
@@ -14,7 +15,7 @@ class CeleryConfigurationTests(
     ):
         self.assertEqual(
             app.conf.broker_url,
-            'redis://127.0.0.1:6379/0',
+            settings.CELERY_BROKER_URL,
         )
 
     def test_healthcheck_task_is_registered(

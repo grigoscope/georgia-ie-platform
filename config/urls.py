@@ -11,8 +11,14 @@ from drf_spectacular.views import (
 from config.schema_urls import (
     urlpatterns as schema_urlpatterns,
 )
+from config.health import healthcheck
 
 urlpatterns = [
+    path(
+    'health/',
+        healthcheck,
+        name='healthcheck',
+    ),
     path(
         'admin/',
         admin.site.urls,
