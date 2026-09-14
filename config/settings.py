@@ -29,6 +29,52 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = [
+    origin
+    for origin in os.getenv(
+        'DJANGO_CSRF_TRUSTED_ORIGINS',
+        '',
+    ).split(',')
+    if origin
+]
+
+SECURE_SSL_REDIRECT = os.getenv(
+    'DJANGO_SECURE_SSL_REDIRECT',
+    'False',
+).lower() == 'true'
+
+SESSION_COOKIE_SECURE = os.getenv(
+    'DJANGO_SESSION_COOKIE_SECURE',
+    'False',
+).lower() == 'true'
+
+CSRF_COOKIE_SECURE = os.getenv(
+    'DJANGO_CSRF_COOKIE_SECURE',
+    'False',
+).lower() == 'true'
+
+SECURE_PROXY_SSL_HEADER = (
+    'HTTP_X_FORWARDED_PROTO',
+    'https',
+)
+
+SECURE_HSTS_SECONDS = int(
+    os.getenv(
+        'DJANGO_SECURE_HSTS_SECONDS',
+        '0',
+    )
+)
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv(
+    'DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS',
+    'False',
+).lower() == 'true'
+
+SECURE_HSTS_PRELOAD = os.getenv(
+    'DJANGO_SECURE_HSTS_PRELOAD',
+    'False',
+).lower() == 'true'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

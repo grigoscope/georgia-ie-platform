@@ -267,6 +267,10 @@ reference/              исходное ТЗ и проектная докуме
 
 Исходное техническое задание хранится в:
 
+- `docs/production.md` — production deployment и эксплуатация;
+- `docs/backup-policy.md` — политика резервного копирования и восстановления;
+- `docs/personal-data.md` — обработка персональных данных;
+
 ```text
 reference/project-specification.md
 ```
