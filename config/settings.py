@@ -303,6 +303,16 @@ CELERY_TASK_TIME_LIMIT = 300
 CELERY_TASK_SOFT_TIME_LIMIT = 270
 
 CELERY_BEAT_SCHEDULE = {
+    'update-official-exchange-rates': {
+        'task': (
+            'exchange_rates.update_official_rates'
+        ),
+        'schedule': crontab(
+            hour=7,
+            minute=30,
+        ),
+    },
+
     'daily-tax-cycle': {
         'task': (
             'notifications.run_daily_tax_cycle'
@@ -310,15 +320,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(
             hour=8,
             minute=0,
-        ),
-    },
-
-    'dispatch-pending-telegram': {
-        'task': (
-            'notifications.dispatch_pending_telegram'
-        ),
-        'schedule': crontab(
-            minute='*/5',
         ),
     },
 
@@ -338,6 +339,15 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'schedule': crontab(
             minute=30,
+        ),
+    },
+
+    'dispatch-pending-telegram': {
+        'task': (
+            'notifications.dispatch_pending_telegram'
+        ),
+        'schedule': crontab(
+            minute='*/5',
         ),
     },
 }

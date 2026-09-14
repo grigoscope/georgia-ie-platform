@@ -166,6 +166,13 @@ class InvoiceDeliveryService:
                 )
             ) from error
 
+        except requests.RequestException as error:
+            raise (
+                TemporaryInvoiceDeliveryError(
+                    'Не удалось отправить инвойс в Telegram.'
+                )
+            ) from error
+
         except ValueError as error:
             raise (
                 PermanentInvoiceDeliveryError(
